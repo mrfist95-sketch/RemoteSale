@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         String   @default("BUYER") // BUYER | AGENT | SELLER | ANALYST | ADMIN
+  agentId      String? // для покупателя: закреплённый агент
+  // Поля профиля покупателя
+  address     String? // адрес доставки
+  phone       String? // телефон
+  comment     String? // комментарий
+  deferral    Int      @default(0) // отсрочка оплаты, дней
+  createdAt    DateTime @default(now())
+
+  agent       User?      @relation("AgentClients", fields: [agentId], references: [id])
+  clients     User[]     @relation("AgentClients")
+  priceLists  PriceList[] @relation("PriceListUploader")
+  buyOrders   Order[]    @relation("OrderBuyer")
+  agentOrders Order[]    @relation("OrderAgent")
+  payments    Payment[]  @relation("PaymentBuyer")
+  statusLogs  OrderStatusLog[] @relation("StatusLogAuthor")
+}
+
+model PriceList {
+  id           String   @id @default(cuid())
+  fileName     String
+  status       String   @default("active") // active | archived
+  uploadedById String
+  uploadedBy   User     @relation("PriceListUploader", fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+  products     Product[]
+}
+
+model Product {
+  id            String    @id @default(cuid())
+  article       String?   @unique // необязателен; при пустом значении генерируется счётчиком (АРТ-000001)
+  name          String
+  unit          String    @default("шт")
+  price         Float     @default(0)
+  stock         Int       @default(0)
+  manufacturer  String?   // производитель
+  deleted       Boolean   @default(false) // пометка на удаление (скрыт из каталога и заказов)
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  priceListId   String?
+  priceList     PriceList? @relation(fields: [priceListId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orderItems    OrderItem[]
+
+  @@index([categoryId])
+  @@index([manufacturer])
+  @@index([deleted])
+}
+
+// Товарная категория (справочник)
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  products  Product[]
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  number    Int      @unique
+  buyerId   String
+  buyer     User     @relation("OrderBuyer", fields: [buyerId], references: [id])
+  agentId   String?
+  agent     User?    @relation("OrderAgent", fields: [agentId], references: [id])
+  status    String   @default("NEW") // NEW | ENTERED | ASSEMBLED | SHIPPED | DELIVERED | PAID | CRESETED | CANCELLED
+  total     Float    @default(0)
+  note      String?
+  deleted   Boolean  @default(false) // пометка на удаление (скрыт из списков и отчётов)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     OrderItem[]
+  payments  Payment[]
+  statusLogs OrderStatusLog[]
+
+  @@index([buyerId])
+  @@index([status])
+  @@index([agentId])
+  @@index([createdAt])
+}
+
+model OrderStatusLog {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status      String
+  changedAt   DateTime @default(now())
+  changedById String?
+  changedBy   User?    @relation("StatusLogAuthor", fields: [changedById], references: [id])
+  note        String?
+
+  @@index([orderId])
+  @@index([changedAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  name      String // снимок наименования
+  qty       Float
+  price     Float
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  buyerId   String
+  buyer     User     @relation("PaymentBuyer", fields: [buyerId], references: [id])
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id])
+  amount    Float
+  date      DateTime @default(now())
+  method    String   @default("card") // card | cash | invoice
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([buyerId])
+  @@index([orderId])
+}

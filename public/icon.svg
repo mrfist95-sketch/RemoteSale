@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0b2545" />
+  <g fill="#f5f7fa" stroke="#f5f7fa" stroke-linecap="round" stroke-linejoin="round">
+    <!-- корпус -->
+    <path d="M100,312 L412,312 Q256,362 100,312 Z" stroke="none" />
+    <!-- таран (rostrum) на носу -->
+    <path d="M412,300 L452,314 L412,328 Z" stroke="none" />
+    <!-- мачта -->
+    <line x1="256" y1="312" x2="256" y2="138" stroke-width="10" />
+    <!-- рея -->
+    <line x1="240" y1="150" x2="378" y2="150" stroke-width="8" />
+    <!-- парус -->
+    <path d="M262,154 L368,154 L368,290 L262,290 Z" stroke="none" />
+    <!-- флаг -->
+    <path d="M256,138 L300,146 L256,154 Z" stroke="none" />
+    <!-- вёсла -->
+    <g stroke-width="6">
+      <line x1="160" y1="326" x2="132" y2="352" />
+      <line x1="200" y1="330" x2="172" y2="356" />
+      <line x1="240" y1="332" x2="214" y2="358" />
+      <line x1="280" y1="332" x2="256" y2="358" />
+      <line x1="320" y1="330" x2="296" y2="356" />
+    </g>
+  </g>
+</svg>

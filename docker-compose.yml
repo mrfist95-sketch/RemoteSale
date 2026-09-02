@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/app/data/prod.db"
+      NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000}"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?Задайте NEXTAUTH_SECRET в .env}"
+      AUTH_SECRET: "${NEXTAUTH_SECRET:-}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@example.com}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:?Задайте ADMIN_PASSWORD в .env}"
+    volumes:
+      - app-data:/app/data
+
+volumes:
+  app-data:
