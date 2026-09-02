@@ -1,70 +1,74 @@
-# SalesRemote — B2B платформа продаж
+# OnSale — B2B платформа оптовых продаж
 
-Веб-приложение для оптовых продаж товаров по прайс-листу. 5 ролей с раздельным доступом.
+Веб-приложение для оптовых продаж товаров по прайс-листу. 6 ролей с раздельным доступом, PWA, Docker.
 
 ## Стек
 
 - **Next.js 16** (App Router, TypeScript) — фронтенд и API в одном проекте
-- **Prisma 6** + **SQLite** (локально) / **Postgres** (в Docker, через `DATABASE_URL`)
-- **Auth.js (NextAuth v4)** — аутентификация и RBAC по полю `role`
-- **Tailwind CSS**, **Recharts** (графики), **papaparse** + **xlsx** (загрузка прайс-листа)
+- **Prisma 6** + **SQLite** (файл в Docker-volume)
+- **NextAuth v4** — аутентификация (JWT-сессии), rate limit на вход, RBAC по полю `role`
+- **Tailwind CSS**, **Recharts** (графики), **papaparse** + **exceljs** (загрузка прайс-листа)
+- **PWA**: manifest, service worker, офлайн-страница, установка на главный экран
+- **Docker**: healthcheck, watchdog (автоперезапуск), volume для базы
 
 ## Роли и права
 
 | Роль | Возможности |
 |------|-------------|
-| Покупатель | Каталог, оформление заказа из прайс-листа, отмена необработанных заказов, история оплат, задолженность, статистика |
-| Торговый агент | Закреплённые клиенты, оформление заказа за клиента, статистика продаж/долгов в разрезе клиентов |
-| Продавец | Очередь заказов, смена статусов, оплаты, статистика |
-| Аналитик | Только агрегированная статистика по периодам (read-only) |
-| Администратор | Всё выше + управление пользователями/ролями, загрузка/правка прайс-листа |
+| Покупатель | Каталог (фильтры/сортировка по категориям и производителям), оформление заказа с группировкой, отмена необработанных заказов, оплаты, задолженность/просрочка, профиль |
+| Торговый агент | Закреплённые клиенты, заказ за клиента, статистика продаж/долгов |
+| Продавец | Очередь заказов с пагинацией и фильтрами, массовая смена статусов, маршрутный лист, оплаты |
+| Курьер | Доставка: пометка «Доставлен» только для отгруженных заказов |
+| Аналитик | Агрегированные отчёты по представителям и товарам (read-only) |
+| Администратор | Пользователи/роли, прайс-лист (загрузка, категории, производители, удаление), все заказы |
 
-Статусы заказа: `Новый → Внесён → Собран → Отгружен → Оплачен`. `Отменён` — только до обработки продавцом.
+Статусы заказа: `Новый → Внесён → Собран → Отгружен → Доставлен → Оплачен`. `Отменён` — до обработки продавцом.
 
-## Демо-доступы (пароль для всех: `password123`)
+## Первый вход
 
-- admin@demo.ru — Администратор
-- seller@demo.ru — Продавец
-- agent@demo.ru — Торговый агент
-- buyer1@demo.ru / buyer2@demo.ru — Покупатели
-- analyst@demo.ru — Аналитик
+В чистой базе **один пользователь — администратор**, создаваемый при первом старте из переменных окружения:
 
-## Локальный запуск (Windows / Linux)
+- `ADMIN_EMAIL` — логин
+- `ADMIN_PASSWORD` — пароль (минимум 8 символов)
 
-```bash
-npm install
-cp .env .env.local   # при необходимости
-npx prisma generate
-npx prisma migrate dev   # или: npx prisma db push
-npm run seed             # демо-данные (пользователи, прайс-лист, заказы)
-npm run dev             # http://localhost:3000
-```
+Демо-пользователей нет. Сотрудников, покупателей и прайс-лист заводит администратор через интерфейс (пароли можно генерировать автоматически).
 
-Переменные в `.env`:
-- `DATABASE_URL="file:./dev.db"` — для Postgres укажите `postgresql://...`
-- `NEXTAUTH_SECRET` / `AUTH_SECRET` — секрет сессий (сгенерируйте свой)
-- `NEXTAUTH_URL` — базовый URL
-
-## Запуск через Docker (перенос на Ubuntu)
+## Быстрый старт (Docker)
 
 ```bash
-docker compose up --build
+cp .env.example .env   # заполнить NEXTAUTH_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, NEXTAUTH_URL
+docker compose up -d --build
 ```
 
-Контейнер сам применит схему (`prisma db push`), заполнит демо-данные и запустит приложение на `:3000`.
-База (SQLite) хранится в volume `app-data` — перенос на другой хост = копия `docker-compose.yml` + volume.
-Для Postgres: замените `DATABASE_URL` в `docker-compose.yml` на строку подключения и добавьте сервис `db`.
+Приложение: http://localhost:3000. Подробности — в [INSTALL.md](INSTALL.md): переменные окружения, запуск без Docker, перенос/бэкап базы, HTTPS.
+
+## Локальная разработка
+
+```bash
+npm ci
+cp .env.example .env   # DATABASE_URL="file:./dev.db"
+npx prisma db push
+npm run seed           # создаёт администратора из ADMIN_EMAIL/ADMIN_PASSWORD
+npm run dev            # http://localhost:3000
+```
+
+Тесты: `npm test` (Vitest: RBAC, расчёт долга/просрочки, генератор паролей и артикулов, парсер прайса, rate limit, IDOR).
+
+## Дистрибутив
+
+```bash
+node scripts/make-dist.mjs   # -> dist/onsale-dist/ + dist/onsale-dist.zip
+```
+
+Сборщик исключает секреты (`.env`, базу) и проверяет результат на утечки; развёртывание из архива — в `INSTALL.md`.
 
 ## Структура
 
 ```
 src/
-  app/
-    (auth)/login        — вход
-    buyer|agent|seller|analyst|admin  — кабинеты по ролям
-    api/auth/[...nextauth] — Auth.js handler
-    actions.ts, price-actions.ts      — server actions (мутации)
-  lib/   prisma, auth, rbac, stats, format
-  components/  AppShell, charts, формы заказов/оплат/прайс-листа
-prisma/  schema.prisma, seed.ts, migrations/
+  app/            страницы по ролям, server actions, api (health, шаблоны прайса)
+  lib/            prisma, auth, rbac, stats, price-parse, article, rate-limit
+  components/     AppShell, формы заказов/оплат/прайс-листа, таблицы
+prisma/           schema.prisma, seed.ts, migrations/
+scripts/          watchdog.mjs, gen-icons.mjs, make-dist.mjs
 ```
