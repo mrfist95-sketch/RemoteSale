@@ -13,7 +13,7 @@ onsale-dist/
 ├── prisma/               # схема БД и seed (создаёт администратора)
 ├── public/               # статика (иконки PWA, service worker, офлайн-страница)
 ├── scripts/              # watchdog.mjs, gen-icons.mjs
-├── Dockerfile            # сборка образа (внутри: тесты + build + healthcheck)
+├── Dockerfile            # сборка образа (build + healthcheck)
 ├── docker-compose.yml    # запуск одной командой, volume для БД
 ├── docker-entrypoint.sh  # миграции + seed + watchdog
 ├── .env.example          # шаблон конфигурации (скопировать в .env)
@@ -24,7 +24,7 @@ onsale-dist/
 
 ---
 
-## Способ 1 — Docker (рекомендуется)
+## Способ 1 — Docker из архива дистрибутива
 
 Требования: Docker + Docker Compose v2 (Docker Desktop на Windows/macOS или docker engine на Linux).
 
@@ -81,7 +81,40 @@ docker compose restart     # перезапуск
 
 ---
 
-## Способ 2 — без Docker (Node.js 20+)
+## Способ 2 — сборка Docker прямо из GitHub
+
+Ничего скачивать и распаковывать не нужно — только git и Docker. Репозиторий: `https://github.com/mrfist95-sketch/RemoteSale`
+
+```bash
+# 1. Клонировать репозиторий
+git clone https://github.com/mrfist95-sketch/RemoteSale.git
+cd RemoteSale
+
+# 2. Создать .env из шаблона и заполнить его
+cp .env.example .env
+#    отредактируйте .env: NEXTAUTH_SECRET, AUTH_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, NEXTAUTH_URL
+#    (см. таблицу «Шаг 1» из Способа 1)
+
+# 3. Собрать и запустить
+docker compose up -d --build
+```
+
+Дальше всё как в Способе 1: `docker compose ps` (ждём `Up (healthy)`), вход админом из `.env` на http://localhost:3000. Данные — в volume, обновления — `git pull` + `docker compose up -d --build`.
+
+### Обновление из GitHub
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Данные базы при этом сохраняются (лежат в volume `app-data`, а не в репозитории).
+
+> Примечание для Windows: команды `cp` и `$(date)` из примеров — для Linux/macOS/Git Bash. В PowerShell используйте `Copy-Item .env.example .env`.
+
+---
+
+## Способ 3 — без Docker (Node.js 20+)
 
 ```bash
 npm ci
