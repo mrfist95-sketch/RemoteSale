@@ -6,6 +6,7 @@ import { PageHeader, Card } from "@/components/ui";
 import StatusBadge from "@/components/StatusBadge";
 import StatusHistory from "@/components/StatusHistory";
 import CancelButton from "@/components/CancelButton";
+import SubmitOrderButton from "@/components/SubmitOrderButton";
 import { canCancel } from "@/lib/rbac";
 
 export default async function BuyerOrdersPage() {
@@ -38,6 +39,7 @@ export default async function BuyerOrdersPage() {
                     </span>
                   )}
                   {canCancel(o.status) && <CancelButton orderId={o.id} />}
+                  {o.status === "NEW" && <SubmitOrderButton orderId={o.id} />}
                 </div>
               </div>
               <table className="mt-3 w-full text-sm">

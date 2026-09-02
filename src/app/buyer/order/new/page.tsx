@@ -22,7 +22,10 @@ export default async function NewOrderPage() {
 
   return (
     <div>
-      <PageHeader title="Новый заказ" subtitle="Выберите товары и укажите количество" />
+      <PageHeader
+        title="Новый заказ"
+        subtitle="Черновик: можно вернуться и передать в работу в разделе «Мои заказы»"
+      />
       <CreateOrderForm
         products={products.map((p) => ({
           id: p.id,

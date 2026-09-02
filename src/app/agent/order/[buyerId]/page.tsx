@@ -31,7 +31,10 @@ export default async function AgentOrderForClient({
 
   return (
     <div>
-      <PageHeader title={`Заказ для ${buyer.name ?? buyer.email}`} />
+      <PageHeader
+        title={`Заказ для ${buyer.name ?? buyer.email}`}
+        subtitle="Черновик: после оформления передайте в работу в разделе «Заказы клиентов»"
+      />
       <Card>
         <CreateOrderForm
           products={products.map((p) => ({

@@ -5,6 +5,7 @@ import { formatRub, formatDateTime } from "@/lib/format";
 import { PageHeader, Card } from "@/components/ui";
 import StatusBadge from "@/components/StatusBadge";
 import StatusHistory from "@/components/StatusHistory";
+import SubmitOrderButton from "@/components/SubmitOrderButton";
 import Link from "next/link";
 
 export default async function AgentOrdersPage() {
@@ -44,6 +45,7 @@ export default async function AgentOrdersPage() {
                       Просрочено {info.overdueDays} дн.
                     </span>
                   )}
+                  {o.status === "NEW" && <SubmitOrderButton orderId={o.id} />}
                 </div>
               </div>
               <table className="mt-3 w-full text-sm">

@@ -31,8 +31,8 @@ export const ORDER_STATUSES = [
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
-  NEW: "Новый",
-  ENTERED: "Внесён",
+  NEW: "Новый (черновик)",
+  ENTERED: "Внесён — в работе",
   ASSEMBLED: "Собран",
   SHIPPED: "Отгружен",
   DELIVERED: "Доставлен",

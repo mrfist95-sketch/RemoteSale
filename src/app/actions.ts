@@ -73,6 +73,28 @@ export async function createOrder(
   return { ok: true };
 }
 
+// Передача заказа в работу: НОВЫЙ (черновик) -> ВНЕСЁН.
+// Покупатель — только свой заказ; агент — только заказ своего клиента.
+export async function submitOrder(orderId: string) {
+  const me = await assertRole("BUYER", "AGENT", "ADMIN");
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) throw new Error("Заказ не найден");
+  if (me.role === "BUYER" && order.buyerId !== me.id) throw new Error("Нет доступа");
+  if (me.role === "AGENT") {
+    const buyer = await prisma.user.findUnique({ where: { id: order.buyerId } });
+    if (buyer?.agentId !== me.id) throw new Error("Нет доступа");
+  }
+  if (order.status !== "NEW") throw new Error("Передать в работу можно только черновик (статус «Новый»)");
+  await prisma.order.update({ where: { id: orderId }, data: { status: "ENTERED" } });
+  await prisma.orderStatusLog.create({
+    data: { orderId, status: "ENTERED", changedById: me.id },
+  });
+  revalidatePath("/buyer/orders");
+  revalidatePath("/agent/orders");
+  revalidatePath("/seller");
+  return { ok: true };
+}
+
 export async function cancelOrder(orderId: string) {
   const me = await assertRole("BUYER", "AGENT", "ADMIN");
   const order = await prisma.order.findUnique({ where: { id: orderId } });
