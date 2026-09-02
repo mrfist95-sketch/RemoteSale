@@ -30,6 +30,11 @@ async function main() {
     create: { email: adminEmail, name: "Администратор", passwordHash: pwd, role: "ADMIN" },
   });
 
+  // Стартовый справочник причин корректировки заказов (идемпотентно)
+  for (const reason of ["Нет на складе", "Пересорт", "Ошибка клиента", "Замена по согласованию"]) {
+    await prisma.orderEditReason.upsert({ where: { name: reason }, update: {}, create: { name: reason } });
+  }
+
   console.log("Seed finished.");
   console.log("Администратор создан:", adminEmail);
 }

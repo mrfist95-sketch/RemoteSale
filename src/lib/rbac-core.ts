@@ -65,6 +65,7 @@ export const DAY_MS = 86_400_000;
 
 export interface OrderDebtInfo {
   unpaid: number;
+  paid: number;
   dueDate: Date;
   overdueDays: number;
   overdue: boolean;
@@ -82,9 +83,13 @@ export interface OrderDebtInput {
 // overdue = статус входит в долг И есть неоплаченный остаток И прошёл срок отсрочки.
 export function computeOrderDebtInfo(o: OrderDebtInput, now: Date): OrderDebtInfo {
   const unpaid = Math.max(0, o.total - o.paid);
+  const paid = Math.min(o.paid, o.total);
   const due = new Date(o.createdAt.getTime() + (o.deferral ?? 0) * DAY_MS);
   const overdueDays =
     now.getTime() > due.getTime() ? Math.floor((now.getTime() - due.getTime()) / DAY_MS) : 0;
   const overdue = DEBT_STATUSES.includes(o.status) && unpaid > 0 && overdueDays > 0;
-  return { unpaid, dueDate: due, overdueDays, overdue };
+  return { unpaid, paid, dueDate: due, overdueDays, overdue };
 }
+
+// Статусы, в которых разрешён приём оплаты по заказу
+export const PAYABLE_STATUSES: string[] = ["ASSEMBLED", "SHIPPED", "DELIVERED"];

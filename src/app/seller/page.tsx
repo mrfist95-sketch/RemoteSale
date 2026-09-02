@@ -32,7 +32,7 @@ export default async function SellerHome({
       : {}),
   };
 
-  const [total, open, filteredTotal, orders] = await Promise.all([
+  const [total, open, filteredTotal, orders, editReasons] = await Promise.all([
     prisma.order.count({ where: { deleted: false } }),
     prisma.order.count({ where: { deleted: false, status: { notIn: ["PAID", "CANCELLED"] } } }),
     prisma.order.count({ where }),
@@ -51,8 +51,18 @@ export default async function SellerHome({
           orderBy: { changedAt: "asc" },
           include: { changedBy: { select: { name: true, email: true } } },
         },
+        payments: {
+          orderBy: { date: "desc" },
+          include: { createdBy: { select: { name: true, email: true } } },
+        },
+        auditLogs: {
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          include: { user: { select: { name: true, email: true } } },
+        },
       },
     }),
+    prisma.orderEditReason.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
   ]);
 
   // Расчёт просрочки только по выгруженным 20 заказам, не по всей базе
@@ -64,6 +74,7 @@ export default async function SellerHome({
     number: o.number,
     status: o.status,
     total: o.total,
+    paid: debtInfo.get(o.id)?.paid ?? 0,
     createdAt: o.createdAt.toISOString(),
     buyer: {
       name: o.buyer.name,
@@ -73,11 +84,27 @@ export default async function SellerHome({
       deferral: o.buyer.deferral,
     },
     agent: o.agent ? { name: o.agent.name } : null,
-    items: o.items.map((i) => ({ name: i.name, qty: i.qty, price: i.price })),
+    items: o.items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
     statusLogs: o.statusLogs.map((l) => ({
       status: l.status,
       changedAt: l.changedAt.toISOString(),
       changedBy: l.changedBy,
+    })),
+    payments: o.payments.map((p) => ({
+      id: p.id,
+      amount: p.amount,
+      method: p.method,
+      note: p.note,
+      date: p.date.toISOString(),
+      createdBy: p.createdBy,
+    })),
+    audit: o.auditLogs.map((a) => ({
+      id: a.id,
+      action: a.action,
+      details: a.details,
+      amount: a.amount,
+      createdAt: a.createdAt.toISOString(),
+      user: a.user,
     })),
     overdueDays: debtInfo.get(o.id)?.overdueDays ?? 0,
     overdue: debtInfo.get(o.id)?.overdue ?? false,
@@ -110,7 +137,7 @@ export default async function SellerHome({
         </Link>
       </div>
 
-      <SellerOrderBoard orders={serialized} open={open} total={total} />
+      <SellerOrderBoard orders={serialized} open={open} total={total} editReasons={editReasons.map((r) => r.name)} />
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="text-zinc-500">

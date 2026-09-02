@@ -28,6 +28,8 @@ model User {
   agentOrders Order[]    @relation("OrderAgent")
   payments    Payment[]  @relation("PaymentBuyer")
   statusLogs  OrderStatusLog[] @relation("StatusLogAuthor")
+  auditLogs   OrderAuditLog[]  @relation("OrderAuditAuthor")
+  paymentLogs Payment[]  @relation("PaymentAuthor")
 }
 
 model PriceList {
@@ -70,6 +72,13 @@ model Category {
   products  Product[]
 }
 
+// Причина корректировки заказа (справочник, редактирует админ)
+model OrderEditReason {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
 model Order {
   id        String   @id @default(cuid())
   number    Int      @unique
@@ -86,6 +95,7 @@ model Order {
   items     OrderItem[]
   payments  Payment[]
   statusLogs OrderStatusLog[]
+  auditLogs OrderAuditLog[]
 
   @@index([buyerId])
   @@index([status])
@@ -131,8 +141,26 @@ model Payment {
   date      DateTime @default(now())
   method    String   @default("card") // card | cash | invoice
   note      String?
+  createdById String? // кто внёс оплату
+  createdBy User?    @relation("PaymentAuthor", fields: [createdById], references: [id])
   createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
 
   @@index([buyerId])
+  @@index([orderId])
+}
+
+// Аудит: оплаты и корректировки заказов (кто, когда, что)
+model OrderAuditLog {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  action    String   // payment_added | payment_edited | payment_deleted | order_edited
+  details   String?  // человекочитаемое описание (сумма, причина...)
+  amount    Float?   // сумма операции (если применимо)
+  userId    String?
+  user      User?    @relation("OrderAuditAuthor", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
   @@index([orderId])
 }

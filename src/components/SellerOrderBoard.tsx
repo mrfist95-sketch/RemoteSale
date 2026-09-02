@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { bulkChangeStatus } from "@/app/actions";
-import { ORDER_STATUSES, ORDER_STATUS_LABELS } from "@/lib/rbac";
+import { bulkChangeStatus, editOrderItems } from "@/app/actions";
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, PAYABLE_STATUSES } from "@/lib/rbac";
 import { formatRub, formatDateTime } from "@/lib/format";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import StatusHistory from "@/components/StatusHistory";
-import AddPaymentForm from "@/components/AddPaymentForm";
+import OrderPaymentsPanel, { type PaymentRow, type AuditRow } from "@/components/OrderPaymentsPanel";
 
 export interface SellerOrderItem {
   id: string;
@@ -16,6 +16,7 @@ export interface SellerOrderItem {
   number: number;
   status: string;
   total: number;
+  paid: number;
   createdAt: string;
   buyer: {
     name: string | null;
@@ -25,12 +26,14 @@ export interface SellerOrderItem {
     deferral: number;
   };
   agent: { name: string | null } | null;
-  items: { name: string; qty: number; price: number }[];
+  items: { id: string; name: string; qty: number; price: number }[];
   statusLogs: {
     status: string;
     changedAt: string;
     changedBy?: { name: string | null; email: string } | null;
   }[];
+  payments: PaymentRow[];
+  audit: AuditRow[];
   overdueDays: number;
   overdue: boolean;
 }
@@ -39,15 +42,18 @@ export default function SellerOrderBoard({
   orders,
   open,
   total,
+  editReasons,
 }: {
   orders: SellerOrderItem[];
   open: number;
   total: number;
+  editReasons: string[];
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState("ENTERED");
   const [busy, setBusy] = useState(false);
+  const todayISO = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD локально
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -140,24 +146,142 @@ export default function SellerOrderBoard({
               </div>
             )}
 
-            <table className="mt-3 w-full text-sm">
-              <tbody>
-                {o.items.map((i, idx) => (
-                  <tr key={idx} className="border-t border-zinc-100">
-                    <td className="py-1">{i.name}</td>
-                    <td className="py-1 text-right">{i.qty} × {formatRub(i.price)}</td>
-                    <td className="py-1 text-right font-medium">{formatRub(i.qty * i.price)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <OrderItemsEditor order={o} reasons={editReasons} />
+
             <StatusHistory items={o.statusLogs} />
-            <div className="mt-3 border-t border-zinc-100 pt-3">
-              <AddPaymentForm buyerId={o.buyerId} orderId={o.id} />
-            </div>
+            <OrderPaymentsPanel
+              buyerId={o.buyerId}
+              orderId={o.id}
+              total={o.total}
+              paid={o.paid}
+              status={o.status}
+              payments={o.payments}
+              audit={o.audit}
+              canPay={PAYABLE_STATUSES.includes(o.status)}
+              isAdmin={false}
+              todayISO={todayISO}
+            />
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Состав заказа: просмотр + корректировка продавцом (с причиной) */
+function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons: string[] }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [qtys, setQtys] = useState<Record<string, number>>(
+    Object.fromEntries(order.items.map((i) => [i.id, i.qty])),
+  );
+  const [reason, setReason] = useState(reasons[0] ?? "");
+  const [customReason, setCustomReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const editable = ["NEW", "ENTERED", "ASSEMBLED"].includes(order.status);
+
+  async function save() {
+    const finalReason = customReason.trim() || reason;
+    if (!finalReason) {
+      setError("Укажите причину корректировки");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await editOrderItems({
+        orderId: order.id,
+        items: order.items.map((i) => ({ orderItemId: i.id, qty: qtys[i.id] ?? i.qty })),
+        reason: finalReason,
+      });
+      setEditing(false);
+      setMsg(`Состав скорректирован. Новый итог: ${res.total.toFixed(2)} ₽`);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-zinc-500">Состав заказа:</p>
+        {editable && !editing && (
+          <button onClick={() => setEditing(true)} className="text-xs text-blue-600 hover:underline">
+            Корректировать состав
+          </button>
+        )}
+      </div>
+      <table className="mt-1 w-full text-sm">
+        <tbody>
+          {order.items.map((i) => (
+            <tr key={i.id} className="border-t border-zinc-100">
+              <td className="py-1">{i.name}</td>
+              {editing ? (
+                <>
+                  <td className="py-1 text-right">
+                    <input
+                      type="number"
+                      min={0}
+                      value={qtys[i.id] ?? i.qty}
+                      onChange={(e) => setQtys((q) => ({ ...q, [i.id]: Number(e.target.value) }))}
+                      className="w-16 rounded border border-zinc-300 px-1 py-0.5 text-right"
+                    />
+                  </td>
+                  <td className="py-1 text-right text-zinc-400">{formatRub(i.price)}</td>
+                  <td className="py-1 text-right font-medium">{formatRub((qtys[i.id] ?? i.qty) * i.price)}</td>
+                </>
+              ) : (
+                <>
+                  <td className="py-1 text-right">{i.qty} × {formatRub(i.price)}</td>
+                  <td className="py-1 text-right font-medium">{formatRub(i.qty * i.price)}</td>
+                </>
+              )}
+            </tr>
+          ))}
+          {order.items.length === 0 && (
+            <tr><td className="py-2 text-xs text-zinc-400" colSpan={3}>Позиции удалены</td></tr>
+          )}
+        </tbody>
+      </table>
+      {editing && (
+        <div className="mt-2 rounded border border-amber-300 bg-amber-50 p-2 text-xs">
+          <p className="mb-1 text-amber-700">
+            Укажите причины списком (админ настраивает список) или впишите свою. Кол-во 0 = позиция удаляется.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {reasons.length > 0 && (
+              <select
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="rounded border border-zinc-300 px-1 py-0.5"
+              >
+                <option value="">— причина —</option>
+                {reasons.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            )}
+            <input
+              value={customReason}
+              onChange={(e) => setCustomReason(e.target.value)}
+              placeholder={reasons.length > 0 ? "или своя причина" : "причина (например: Нет на складе)"}
+              className="w-56 rounded border border-zinc-300 px-2 py-0.5"
+            />
+            <button onClick={save} disabled={busy} className="rounded bg-zinc-900 px-3 py-1 text-white disabled:opacity-50">
+              {busy ? "…" : "Сохранить"}
+            </button>
+            <button onClick={() => { setEditing(false); setError(null); }} className="text-zinc-500 hover:underline">отмена</button>
+          </div>
+        </div>
+      )}
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {msg && <p className="mt-1 text-xs text-green-600">{msg}</p>}
     </div>
   );
 }

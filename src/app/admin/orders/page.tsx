@@ -6,8 +6,10 @@ import { PageHeader, Card } from "@/components/ui";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import StatusHistory from "@/components/StatusHistory";
-import AddPaymentForm from "@/components/AddPaymentForm";
+import OrderPaymentsPanel, { type PaymentRow, type AuditRow } from "@/components/OrderPaymentsPanel";
 import DeleteToggle from "@/components/DeleteToggle";
+import EditReasonsAdmin from "@/components/EditReasonsAdmin";
+import { PAYABLE_STATUSES } from "@/lib/rbac";
 
 async function loadOrders(deleted: boolean) {
   const orders = await prisma.order.findMany({
@@ -18,11 +20,14 @@ async function loadOrders(deleted: boolean) {
       buyer: { select: { id: true, name: true, email: true, address: true, phone: true, deferral: true } },
       agent: { select: { name: true } },
       statusLogs: { orderBy: { changedAt: "asc" }, include: { changedBy: { select: { name: true, email: true } } } },
+      payments: { orderBy: { date: "desc" }, include: { createdBy: { select: { name: true, email: true } } } },
+      auditLogs: { orderBy: { createdAt: "desc" }, take: 20, include: { user: { select: { name: true, email: true } } } },
     },
   });
   const debtInfo = await getOrdersDebtInfo(orders.map((o) => o.id));
   return orders.map((o) => ({
     o,
+    paid: debtInfo.get(o.id)?.paid ?? 0,
     overdueDays: debtInfo.get(o.id)?.overdueDays ?? 0,
     overdue: debtInfo.get(o.id)?.overdue ?? false,
   }));
@@ -30,14 +35,37 @@ async function loadOrders(deleted: boolean) {
 
 function OrderCard({
   o,
+  paid,
   overdueDays,
   overdue,
   deleted,
+  todayISO,
 }: {
-  o: any;
+  o: {
+    id: string;
+    buyerId: string;
+    number: number;
+    status: string;
+    total: number;
+    createdAt: Date;
+    buyer: { name: string | null; email: string; address: string | null; phone: string | null; deferral: number };
+    agent: { name: string | null } | null;
+    items: { id: string; name: string; qty: number; price: number }[];
+    statusLogs: { status: string; changedAt: Date; changedBy: { name: string | null; email: string } | null }[];
+    payments: {
+      id: string; amount: number; method: string; note: string | null; date: Date;
+      createdBy: { name: string | null; email: string } | null;
+    }[];
+    auditLogs: {
+      id: string; action: string; details: string | null; amount: number | null;
+      createdAt: Date; user: { name: string | null; email: string } | null;
+    }[];
+  };
+  paid: number;
   overdueDays: number;
   overdue: boolean;
   deleted: boolean;
+  todayISO: string;
 }) {
   return (
     <Card key={o.id} className={deleted ? "opacity-70" : undefined}>
@@ -68,7 +96,7 @@ function OrderCard({
       )}
       <table className="mt-3 w-full text-sm">
         <tbody>
-          {o.items.map((i: any) => (
+          {o.items.map((i) => (
             <tr key={i.id} className="border-t border-zinc-100">
               <td className="py-1">{i.name}</td>
               <td className="py-1 text-right">{i.qty} × {formatRub(i.price)}</td>
@@ -78,24 +106,57 @@ function OrderCard({
         </tbody>
       </table>
       <StatusHistory items={o.statusLogs} />
-      <div className="mt-3 border-t border-zinc-100 pt-3">
-        <AddPaymentForm buyerId={o.buyerId} orderId={o.id} />
-      </div>
+      {!deleted && (
+        <OrderPaymentsPanel
+          buyerId={o.buyerId}
+          orderId={o.id}
+          total={o.total}
+          paid={paid}
+          status={o.status}
+          payments={o.payments.map((p) => ({
+            id: p.id,
+            amount: p.amount,
+            method: p.method,
+            note: p.note,
+            date: p.date.toISOString(),
+            createdBy: p.createdBy,
+          })) as PaymentRow[]}
+          audit={o.auditLogs.map((a) => ({
+            id: a.id,
+            action: a.action,
+            details: a.details,
+            amount: a.amount,
+            createdAt: a.createdAt.toISOString(),
+            user: a.user,
+          })) as AuditRow[]}
+          canPay={PAYABLE_STATUSES.includes(o.status)}
+          isAdmin={true}
+          todayISO={todayISO}
+        />
+      )}
     </Card>
   );
 }
 
 export default async function AdminOrdersPage() {
   await requireRole("ADMIN");
-  const [active, deleted] = await Promise.all([loadOrders(false), loadOrders(true)]);
+  const [active, deleted, reasons] = await Promise.all([
+    loadOrders(false),
+    loadOrders(true),
+    prisma.orderEditReason.findMany({ orderBy: { name: "asc" } }),
+  ]);
+  const todayISO = new Date().toLocaleDateString("sv-SE");
 
   return (
     <div>
       <PageHeader title="Все заказы" subtitle={`Активных: ${active.length} · удалённых: ${deleted.length}`} />
+
+      <EditReasonsAdmin reasons={reasons.map((r) => ({ id: r.id, name: r.name }))} />
+
       <div className="space-y-3">
         {active.length === 0 && <p className="text-sm text-zinc-400">Заказов пока нет</p>}
         {active.map((x) => (
-          <OrderCard key={x.o.id} o={x.o} overdueDays={x.overdueDays} overdue={x.overdue} deleted={false} />
+          <OrderCard key={x.o.id} o={x.o} paid={x.paid} overdueDays={x.overdueDays} overdue={x.overdue} deleted={false} todayISO={todayISO} />
         ))}
       </div>
 
@@ -104,7 +165,7 @@ export default async function AdminOrdersPage() {
           <h2 className="mb-2 text-sm font-semibold text-zinc-500">Удалённые (скрыты из отчётов)</h2>
           <div className="space-y-3">
             {deleted.map((x) => (
-              <OrderCard key={x.o.id} o={x.o} overdueDays={x.overdueDays} overdue={x.overdue} deleted={true} />
+              <OrderCard key={x.o.id} o={x.o} paid={x.paid} overdueDays={x.overdueDays} overdue={x.overdue} deleted={true} todayISO={todayISO} />
             ))}
           </div>
         </div>

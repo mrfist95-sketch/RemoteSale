@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import Papa from "papaparse";
 import { normalizeArticle, nextArticle } from "@/lib/article";
+import { PAYABLE_STATUSES } from "@/lib/rbac-core";
 
 async function assertRole(...roles: string[]) {
   const u = await getSessionUser();
@@ -151,19 +152,208 @@ export async function createPayment(input: {
 }) {
   const me = await assertRole("SELLER", "ADMIN");
   if (!input.amount || input.amount <= 0) throw new Error("Сумма должна быть больше 0");
-  await prisma.payment.create({
-    data: {
-      buyerId: input.buyerId,
-      orderId: input.orderId || null,
-      amount: input.amount,
-      method: input.method || "card",
-      note: input.note || null,
-    },
-  });
+
+  if (input.orderId) {
+    const order = await prisma.order.findUnique({
+      where: { id: input.orderId },
+      select: { id: true, status: true, total: true, buyerId: true },
+    });
+    if (!order) throw new Error("Заказ не найден");
+
+    // Оплата разрешена только в статусах Собран/Отгружен/Доставлен
+    if (!PAYABLE_STATUSES.includes(order.status))
+      throw new Error("Оплату можно вносить только по заказам в статусах «Собран», «Отгружен» или «Доставлен»");
+
+    const paidAgg = await prisma.payment.aggregate({
+      where: { orderId: order.id },
+      _sum: { amount: true },
+    });
+    const paid = paidAgg._sum.amount ?? 0;
+    const debt = order.total - paid;
+    if (input.amount > debt + 0.009) {
+      throw new Error(
+        `Сумма превышает задолженность по заказу на ${(input.amount - debt).toFixed(2)} ₽ ` +
+          `(задолженность: ${debt.toFixed(2)} ₽ из ${order.total.toFixed(2)} ₽). ` +
+          `Внесите ровно ${debt.toFixed(2)} ₽ или меньше.`,
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.create({
+        data: {
+          buyerId: input.buyerId,
+          orderId: input.orderId || null,
+          amount: input.amount,
+          method: input.method || "card",
+          note: input.note || null,
+          createdById: me.id,
+        },
+      });
+      await tx.orderAuditLog.create({
+        data: {
+          orderId: order.id,
+          action: "payment_added",
+          amount: input.amount,
+          details: `Внесена оплата ${(input.amount as number).toFixed(2)} ₽ (${input.method || "card"})`,
+          userId: me.id,
+        },
+      });
+      // Полная оплата -> автоматический перевод в «Оплачен»
+      if (paid + (input.amount as number) >= order.total - 0.009) {
+        await tx.order.update({ where: { id: order.id }, data: { status: "PAID" } });
+        await tx.orderStatusLog.create({
+          data: { orderId: order.id, status: "PAID", changedById: me.id, note: "Полная оплата" },
+        });
+      }
+    });
+  } else {
+    // Оплата без привязки к заказу — без проверок превышения
+    await prisma.payment.create({
+      data: {
+        buyerId: input.buyerId,
+        amount: input.amount,
+        method: input.method || "card",
+        note: input.note || null,
+        createdById: me.id,
+      },
+    });
+  }
   revalidatePath("/buyer/payments");
   revalidatePath("/seller");
   revalidatePath("/agent");
   revalidatePath("/analyst");
+  return { ok: true };
+}
+
+// ---------- Корректировка/удаление оплаты ----------
+
+// Продавец — только оплаты, внесённые «день в день»; администратор — любые.
+// Статус заказа возвращается к предыдущему состоянию (если был автоперевод в PAID).
+export async function correctPayment(input: {
+  paymentId: string;
+  amount?: number;
+  method?: string;
+  note?: string;
+  reason: string; // обязательная причина корректировки
+}) {
+  const me = await assertRole("SELLER", "ADMIN");
+  if (!input.reason || input.reason.trim().length < 3)
+    throw new Error("Укажите причину корректировки");
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: input.paymentId },
+    include: { order: { select: { id: true, status: true, total: true, number: true } } },
+  });
+  if (!payment) throw new Error("Оплата не найдена");
+
+  if (me.role === "SELLER") {
+    // день в день: та же календарная дата (UTC+локаль сервера — сравнение по дате)
+    const dayOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    if (dayOf(payment.date) !== dayOf(new Date()))
+      throw new Error("Продавец может корректировать только оплаты, внесённые сегодня. Более старые корректирует администратор.");
+  }
+
+  const oldAmount = payment.amount;
+  const data: Record<string, unknown> = {};
+  if (input.amount !== undefined) {
+    if (input.amount <= 0) throw new Error("Сумма должна быть больше 0");
+    data.amount = input.amount;
+  }
+  if (input.method !== undefined) data.method = input.method;
+  if (input.note !== undefined) data.note = input.note || null;
+  if (Object.keys(data).length === 0) throw new Error("Нет изменений");
+
+  const newAmount = (input.amount ?? payment.amount) as number;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.payment.update({ where: { id: payment.id }, data });
+
+    const details =
+      `Корректировка оплаты ${payment.amount.toFixed(2)} ₽ -> ` +
+      `${newAmount.toFixed(2)} ₽. Причина: ${input.reason.trim()}`;
+
+    await tx.orderAuditLog.create({
+      data: {
+        orderId: payment.order?.id ?? payment.id,
+        action: "payment_edited",
+        amount: newAmount,
+        details: payment.order ? details : `Оплата без заказа: ${details}`,
+        userId: me.id,
+      },
+    });
+
+    // Пересчёт статуса заказа после корректировки
+    if (payment.order) {
+      const agg = await tx.payment.aggregate({
+        where: { orderId: payment.order.id },
+        _sum: { amount: true },
+      });
+      const paidNow = agg._sum.amount ?? 0;
+      const fullyPaid = paidNow >= payment.order.total - 0.009;
+      if (payment.order.status === "PAID" && !fullyPaid) {
+        await tx.order.update({ where: { id: payment.order.id }, data: { status: "DELIVERED" } });
+        await tx.orderStatusLog.create({
+          data: { orderId: payment.order.id, status: "DELIVERED", changedById: me.id, note: "Откат после корректировки оплаты" },
+        });
+      }
+      if (payment.order.status !== "PAID" && fullyPaid) {
+        await tx.order.update({ where: { id: payment.order.id }, data: { status: "PAID" } });
+        await tx.orderStatusLog.create({
+          data: { orderId: payment.order.id, status: "PAID", changedById: me.id, note: "Полная оплата (после корректировки)" },
+        });
+      }
+    }
+  });
+
+  revalidatePath("/seller");
+  revalidatePath("/buyer/payments");
+  return { ok: true };
+}
+
+export async function deletePayment(paymentId: string, reason: string) {
+  const me = await assertRole("SELLER", "ADMIN");
+  if (!reason || reason.trim().length < 3) throw new Error("Укажите причину удаления оплаты");
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: { order: { select: { id: true, status: true, total: true } } },
+  });
+  if (!payment) throw new Error("Оплата не найдена");
+
+  if (me.role === "SELLER") {
+    const dayOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    if (dayOf(payment.date) !== dayOf(new Date()))
+      throw new Error("Продавец может удалять только оплаты, внесённые сегодня. Более старые удаляет администратор.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.payment.delete({ where: { id: payment.id } });
+    await tx.orderAuditLog.create({
+      data: {
+        orderId: payment.order?.id ?? payment.id,
+        action: "payment_deleted",
+        amount: payment.amount,
+        details: `Удалена оплата ${payment.amount.toFixed(2)} ₽. Причина: ${reason.trim()}`,
+        userId: me.id,
+      },
+    });
+    if (payment.order) {
+      const rest = await tx.payment.aggregate({
+        where: { orderId: payment.order.id },
+        _sum: { amount: true },
+      });
+      const paidNow = rest._sum.amount ?? 0;
+      if (payment.order.status === "PAID" && paidNow < payment.order.total - 0.009) {
+        await tx.order.update({ where: { id: payment.order.id }, data: { status: "DELIVERED" } });
+        await tx.orderStatusLog.create({
+          data: { orderId: payment.order.id, status: "DELIVERED", changedById: me.id, note: "Откат после удаления оплаты" },
+        });
+      }
+    }
+  });
+
+  revalidatePath("/seller");
+  revalidatePath("/buyer/payments");
   return { ok: true };
 }
 
@@ -301,6 +491,93 @@ export async function createProduct(input: {
   revalidatePath("/admin/price-list");
   revalidatePath("/buyer/catalog");
   return { ok: true, id: prod.id, article: prod.article };
+}
+
+// ---------- Корректировка состава заказа продавцом ----------
+
+// Продавец корректирует количество/удаляет позиции (нет на складе, пересорт...).
+// Разрешено пока заказ не отгружен: NEW/ENTERED/ASSEMBLED. Причина — из справочника, пишется в историю.
+export async function editOrderItems(input: {
+  orderId: string;
+  // итоговый состав: позиция -> количество (0 = удалить позицию)
+  items: { orderItemId: string; qty: number }[];
+  reason: string;
+}) {
+  const me = await assertRole("SELLER", "ADMIN");
+  if (!input.reason.trim()) throw new Error("Укажите причину корректировки");
+
+  const order = await prisma.order.findUnique({
+    where: { id: input.orderId },
+    select: { id: true, status: true, total: true, items: { select: { id: true, qty: true, price: true, name: true } } },
+  });
+  if (!order) throw new Error("Заказ не найден");
+  if (!["NEW", "ENTERED", "ASSEMBLED"].includes(order.status))
+    throw new Error("Корректировать состав можно только до отгрузки заказа");
+
+  const byId = new Map(order.items.map((i) => [i.id, i]));
+  let newTotal = order.total;
+  const changes: string[] = [];
+  const removed: string[] = [];
+
+  for (const upd of input.items) {
+    const item = byId.get(upd.orderItemId);
+    if (!item) continue;
+    const qty = Math.max(0, Math.floor(upd.qty));
+    if (qty === item.qty) continue;
+    if (qty === 0) {
+      removed.push(item.name);
+      newTotal -= item.qty * item.price;
+      await prisma.orderItem.delete({ where: { id: item.id } });
+    } else {
+      changes.push(`${item.name}: ${item.qty} -> ${qty}`);
+      newTotal += (qty - item.qty) * item.price;
+      await prisma.orderItem.update({ where: { id: item.id }, data: { qty } });
+    }
+  }
+
+  newTotal = Math.max(0, Number(newTotal.toFixed(2)));
+  await prisma.$transaction(async (tx) => {
+    await tx.order.update({ where: { id: order.id }, data: { total: newTotal } });
+    await tx.orderAuditLog.create({
+      data: {
+        orderId: order.id,
+        action: "order_edited",
+        details:
+          `Корректировка состава: ${[...changes, ...removed.map((n) => `${n}: удалена`)].join("; ") || "без изменений"}. ` +
+          `Итог: ${order.total.toFixed(2)} -> ${newTotal.toFixed(2)} ₽. Причина: ${input.reason.trim()}`,
+        userId: me.id,
+      },
+    });
+  });
+
+  revalidatePath("/seller");
+  revalidatePath("/buyer/orders");
+  revalidatePath("/agent/orders");
+  return { ok: true, total: newTotal, removed, changes };
+}
+
+// ---------- Справочник причин корректировки (админ) ----------
+
+export async function listEditReasons() {
+  return prisma.orderEditReason.findMany({ orderBy: { name: "asc" } });
+}
+
+export async function createEditReason(name: string) {
+  await assertRole("ADMIN");
+  const n = name.trim();
+  if (!n) throw new Error("Введите название причины");
+  const dup = await prisma.orderEditReason.findUnique({ where: { name: n } });
+  if (dup) throw new Error("Такая причина уже есть");
+  await prisma.orderEditReason.create({ data: { name: n } });
+  revalidatePath("/admin/orders");
+  return { ok: true };
+}
+
+export async function deleteEditReason(id: string) {
+  await assertRole("ADMIN");
+  await prisma.orderEditReason.delete({ where: { id } });
+  revalidatePath("/admin/orders");
+  return { ok: true };
 }
 
 // ---------- Удаление товаров (мягкое, с восстановлением) ----------
