@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    container_name: onsale-demo
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      DATABASE_URL: "file:/app/data/prod.db"
+      NEXTAUTH_URL: "${NEXTAUTH_URL:-https://onsaledemo.itinrf.ru}"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?Задайте NEXTAUTH_SECRET в .env}"
+      AUTH_SECRET: "${NEXTAUTH_SECRET:-}"
+      NEXT_PUBLIC_DEMO: "true"
+      DEMO_PASSWORD: "${DEMO_PASSWORD:-demo1234}"
+    volumes:
+      - app-demo-data:/app/data
+
+volumes:
+  app-demo-data:
