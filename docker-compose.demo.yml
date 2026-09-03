@@ -1,6 +1,9 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_DEMO: "true"
     container_name: onsale-demo
     ports:
       - "127.0.0.1:3001:3000"

@@ -2,6 +2,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# NEXT_PUBLIC_* встраиваются в клиентский бандл на этапе сборки
+ARG NEXT_PUBLIC_DEMO="false"
+ENV NEXT_PUBLIC_DEMO=$NEXT_PUBLIC_DEMO
+
 # Install dependencies based on lockfile
 COPY package.json package-lock.json ./
 RUN npm ci
