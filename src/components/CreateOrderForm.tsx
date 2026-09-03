@@ -73,6 +73,8 @@ export default function CreateOrderForm({
   const [loading, setLoading] = useState(false);
   const [group, setGroup] = useState<GroupMode>("category");
   const [search, setSearch] = useState("");
+  // Свёрнутые группы (множество имён). По умолчанию все развёрнуты.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const groups: Group[] = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -106,6 +108,42 @@ export default function CreateOrderForm({
     .map((p) => ({ productId: p.id, qty: Number(qty[p.id] || 0) }))
     .filter((i) => i.qty > 0);
   const total = products.reduce((s, p) => s + p.price * Number(qty[p.id] || 0), 0);
+
+  // Сводка по каждой группе: сколько позиций уже выбрано и на какую сумму
+  const groupPicks = useMemo(() => {
+    const m = new Map<string, { count: number; sum: number }>();
+    for (const g of groups) {
+      let count = 0;
+      let sum = 0;
+      for (const p of g.items) {
+        const q = Number(qty[p.id] || 0);
+        if (q > 0) {
+          count += 1;
+          sum += q * p.price;
+        }
+      }
+      m.set(g.name ?? "__flat__", { count, sum });
+    }
+    return m;
+  }, [groups, qty]);
+
+  function toggleGroup(name: string | null) {
+    const key = name ?? "__flat__";
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  function collapseAll() {
+    setCollapsed(new Set(groups.map((g) => g.name ?? "__flat__")));
+  }
+
+  function expandAll() {
+    setCollapsed(new Set());
+  }
 
   async function submit() {
     setError(null);
@@ -142,7 +180,10 @@ export default function CreateOrderForm({
             type="radio"
             name="group-mode"
             checked={group === "manufacturer"}
-            onChange={() => setGroup("manufacturer")}
+            onChange={() => {
+              setGroup("manufacturer");
+              setCollapsed(new Set());
+            }}
           />
           по производителям
         </label>
@@ -151,7 +192,10 @@ export default function CreateOrderForm({
             type="radio"
             name="group-mode"
             checked={group === "flat"}
-            onChange={() => setGroup("flat")}
+            onChange={() => {
+              setGroup("flat");
+              setCollapsed(new Set());
+            }}
           />
           единый список
         </label>
@@ -164,21 +208,54 @@ export default function CreateOrderForm({
         />
       </div>
 
-      {groups.map((g, gi) => (
-        <div key={g.name ?? `flat-${gi}`} className="overflow-hidden rounded-lg border border-zinc-200">
-          {(group === "category" || group === "manufacturer") && (
-            <div className="flex items-center justify-between bg-zinc-100 px-3 py-2">
-              <span className="text-sm font-semibold">{g.name ?? "Товары"}</span>
-              <span className="text-xs text-zinc-500">{g.items.length} поз.</span>
-            </div>
-          )}
-          <div>
-            {g.items.map((p) => (
-              <ProductRow key={p.id} p={p} qty={qty} setQty={setQty} />
-            ))}
-          </div>
+      {(group !== "flat" && groups.length > 1) && (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-zinc-400">Группы:</span>
+          <button type="button" onClick={collapseAll} className="rounded border border-zinc-300 px-2 py-1 hover:bg-zinc-50">
+            Свернуть все
+          </button>
+          <button type="button" onClick={expandAll} className="rounded border border-zinc-300 px-2 py-1 hover:bg-zinc-50">
+            Развернуть все
+          </button>
         </div>
-      ))}
+      )}
+
+      {groups.map((g, gi) => {
+        const key = g.name ?? "__flat__";
+        const isCollapsed = collapsed.has(key);
+        const picks = groupPicks.get(key) ?? { count: 0, sum: 0 };
+        const showHeader = group === "category" || group === "manufacturer";
+        return (
+          <div key={key ?? `flat-${gi}`} className="overflow-hidden rounded-lg border border-zinc-200">
+            {showHeader ? (
+              <button
+                type="button"
+                onClick={() => toggleGroup(g.name)}
+                className="flex w-full items-center justify-between gap-2 bg-zinc-100 px-3 py-2 text-left hover:bg-zinc-200"
+                title={isCollapsed ? "Развернуть группу" : "Свернуть группу"}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="text-zinc-500">{isCollapsed ? "▸" : "▾"}</span>
+                  <span className="truncate text-sm font-semibold">{g.name ?? "Товары"}</span>
+                  {picks.count > 0 && (
+                    <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                      выбрано: {picks.count} · {formatRub(picks.sum)}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 text-xs text-zinc-500">{g.items.length} поз.</span>
+              </button>
+            ) : null}
+            {!isCollapsed && (
+              <div>
+                {g.items.map((p) => (
+                  <ProductRow key={p.id} p={p} qty={qty} setQty={setQty} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
 
       {groups.every((g) => g.items.length === 0) && (
         <p className="text-sm text-zinc-400">Ничего не найдено</p>
