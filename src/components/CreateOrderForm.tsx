@@ -31,27 +31,29 @@ function ProductRow({
   setQty: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }) {
   return (
-    <tr className="border-t border-zinc-100">
-      <td className="px-3 py-2">
+    <div className="flex items-start justify-between gap-3 border-t border-zinc-100 px-3 py-2">
+      <div className="min-w-0">
         <div className="font-medium">{p.name}</div>
         <div className="text-xs text-zinc-400">
           {p.manufacturer ? `${p.manufacturer} · ` : ""}
-          {p.unit}
+          {p.unit} · скл.: {p.stock}
         </div>
-      </td>
-      <td className="px-3 py-2">{formatRub(p.price)}</td>
-      <td className="px-3 py-2">{p.stock}</td>
-      <td className="px-3 py-2">
+        <div className="mt-0.5 text-sm font-semibold">{formatRub(p.price)}</div>
+      </div>
+      <div className="w-24 shrink-0">
+        <label className="block text-[10px] text-zinc-400">Кол-во</label>
         <input
           type="number"
           min={0}
+          inputMode="numeric"
           value={qty[p.id] || ""}
           onChange={(e) => setQty((q) => ({ ...q, [p.id]: Number(e.target.value) }))}
           className="w-full rounded border border-zinc-300 px-2 py-1"
           placeholder="0"
+          aria-label={`Количество: ${p.name}`}
         />
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
@@ -164,27 +166,17 @@ export default function CreateOrderForm({
 
       {groups.map((g, gi) => (
         <div key={g.name ?? `flat-${gi}`} className="overflow-hidden rounded-lg border border-zinc-200">
-          {group === "category" && (
+          {(group === "category" || group === "manufacturer") && (
             <div className="flex items-center justify-between bg-zinc-100 px-3 py-2">
               <span className="text-sm font-semibold">{g.name ?? "Товары"}</span>
               <span className="text-xs text-zinc-500">{g.items.length} поз.</span>
             </div>
           )}
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-50 text-left">
-              <tr>
-                <th className="px-3 py-2">Артикул / Наименование</th>
-                <th className="px-3 py-2">Цена</th>
-                <th className="px-3 py-2">Остаток</th>
-                <th className="px-3 py-2 w-32">Кол-во</th>
-              </tr>
-            </thead>
-            <tbody>
-              {g.items.map((p) => (
-                <ProductRow key={p.id} p={p} qty={qty} setQty={setQty} />
-              ))}
-            </tbody>
-          </table>
+          <div>
+            {g.items.map((p) => (
+              <ProductRow key={p.id} p={p} qty={qty} setQty={setQty} />
+            ))}
+          </div>
         </div>
       ))}
 

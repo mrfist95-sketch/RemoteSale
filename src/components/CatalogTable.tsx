@@ -17,7 +17,7 @@ interface Row {
 type SortKey = "article" | "name" | "manufacturer" | "category" | "price";
 
 export default function CatalogTable({ products }: { products: Row[] }) {
-  const [sortKey, setSortKey] = useState<SortKey>("article");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filterCat, setFilterCat] = useState("");
   const [filterManu, setFilterManu] = useState("");
@@ -117,21 +117,40 @@ export default function CatalogTable({ products }: { products: Row[] }) {
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Поиск: название / артикул / производитель"
-          className="ml-auto w-64 rounded border border-zinc-300 px-2 py-1 text-sm"
+          placeholder="Поиск: название / производитель"
+          className="ml-auto w-full max-w-64 rounded border border-zinc-300 px-2 py-1 text-sm"
         />
         <span className="text-xs text-zinc-400">
           Сортировка — кликом по заголовку колонки
         </span>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Мобильный: карточки */}
+      <div className="md:hidden">
+        {visible.length === 0 && <p className="py-4 text-center text-sm text-zinc-400">Ничего не найдено</p>}
+        <div className="overflow-hidden rounded-lg border border-zinc-200">
+          {visible.map((p) => (
+            <div key={p.id} className="border-t border-zinc-100 px-3 py-2 first:border-t-0">
+              <div className="font-medium">{p.name}</div>
+              <div className="mt-0.5 text-xs text-zinc-500">
+                {[p.categoryName, p.manufacturer].filter(Boolean).join(" · ") || "—"}
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-2 text-sm">
+                <span className="font-semibold">{formatRub(p.price)}</span>
+                <span className="shrink-0 text-xs text-zinc-400">
+                  {p.unit} · скл.: {p.stock}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Десктоп: таблица */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
           <thead className="text-left text-zinc-500">
             <tr>
-              <th className="cursor-pointer select-none py-2 hover:text-zinc-800" onClick={() => headerClick("article")}>
-                Артикул{indicator("article")}
-              </th>
               <th className="cursor-pointer select-none py-2 hover:text-zinc-800" onClick={() => headerClick("name")}>
                 Наименование{indicator("name")}
               </th>
@@ -151,14 +170,13 @@ export default function CatalogTable({ products }: { products: Row[] }) {
           <tbody>
             {visible.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-4 text-center text-sm text-zinc-400">
+                <td colSpan={6} className="py-4 text-center text-sm text-zinc-400">
                   Ничего не найдено
                 </td>
               </tr>
             )}
             {visible.map((p) => (
               <tr key={p.id} className="border-t border-zinc-100">
-                <td className="py-2 font-mono text-xs">{p.article ?? "—"}</td>
                 <td className="py-2">{p.name}</td>
                 <td className="py-2 text-zinc-500">{p.categoryName ?? "—"}</td>
                 <td className="py-2 text-zinc-600">{p.manufacturer ?? "—"}</td>

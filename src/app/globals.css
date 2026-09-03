@@ -18,13 +18,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Адаптивность таблиц: на узких экранах — горизонтальный скролл */
-@media (max-width: 640px) {
-  main table,
-  .card table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-}
+/* Примечание: прежнее правило «main table { display:block; white-space:nowrap }»
+   удалено — оно распирало таблицы на мобильных и уводило колонки за экран.
+   Горизонтальный скролл широких таблиц обеспечивают обёртки overflow-x-auto. */
