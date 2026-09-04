@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as { email?: string };
     email = String(body.email ?? "").toLowerCase().trim();
   } catch {
-    return NextResponse.json({ blocked: false, attemptsLeft: 4 });
+    return NextResponse.json({ blocked: false, attemptsLeft: 3 });
   }
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return NextResponse.json({ blocked: false, attemptsLeft: null });

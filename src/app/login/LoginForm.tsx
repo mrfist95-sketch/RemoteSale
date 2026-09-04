@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 
 interface AuthStatus {
@@ -16,6 +16,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
+  const wasBlockedRef = useRef(false);
 
   // Тикаем часы для обратного отсчёта
   useEffect(() => {
@@ -38,9 +39,12 @@ export default function LoginForm() {
       })
         .then((r) => r.json())
         .then((s: AuthStatus) => {
-          setBlockedUntil(
-            s.blocked && s.retryAfterSec ? Date.now() + s.retryAfterSec * 1000 : null,
-          );
+          if (s.blocked && s.retryAfterSec > 0) {
+            setBlockedUntil(Date.now() + s.retryAfterSec * 1000);
+            wasBlockedRef.current = true;
+          } else {
+            setBlockedUntil(null);
+          }
         })
         .catch(() => {});
     }, 600);
@@ -58,19 +62,32 @@ export default function LoginForm() {
       const res = await signIn("credentials", { email, password, redirect: false });
       setLoading(false);
       if (!res || res.error) {
-        setError("Неверный email или пароль");
-        // Обновляем статус лимита сразу после неудачи
+        // Статус лимита сразу после неудачи: блокировка началась сейчас или остались попытки
         try {
-          const s = await fetch("/api/auth-status", {
+          const s: AuthStatus = await fetch("/api/auth-status", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ email: email.trim().toLowerCase() }),
           }).then((r) => r.json());
-          setBlockedUntil(
-            s.blocked && s.retryAfterSec ? Date.now() + s.retryAfterSec * 1000 : null,
-          );
+
+          if (s.blocked && s.retryAfterSec > 0) {
+            setBlockedUntil(Date.now() + s.retryAfterSec * 1000);
+            // Уведомление о НАЧАЛЕ блокировки — отличается от просто неверного пароля
+            setError(
+              wasBlockedRef.current
+                ? `Вход заблокирован из-за неверных попыток входа. Повторите через ${s.retryAfterSec} с.`
+                : `Аккаунт заблокирован на ${s.retryAfterSec} с из-за 3 неверных попыток входа.`,
+            );
+            wasBlockedRef.current = true;
+          } else {
+            setError(
+              s.attemptsLeft != null && s.attemptsLeft <= 1
+                ? `Неверный email или пароль. Осталась ${s.attemptsLeft} попытка — после неё вход будет заблокирован на 30 с.`
+                : "Неверный email или пароль",
+            );
+          }
         } catch {
-          // статус недоступен — просто показываем ошибку входа
+          setError("Неверный email или пароль");
         }
         return;
       }
@@ -105,10 +122,14 @@ export default function LoginForm() {
           placeholder="••••••••"
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      )}
       {isBlocked && (
-        <p className="text-sm text-red-600" role="alert">
-          Слишком много попыток. Повторите через {blockedSec} с.
+        <p className="text-sm font-medium text-red-700" role="alert">
+          Блокировка входа: ещё {blockedSec} с.
         </p>
       )}
       <button
