@@ -23,7 +23,7 @@ export default async function AgentOrdersPage() {
     include: {
       items: true,
       payments: { orderBy: { date: "asc" } },
-      buyer: { select: { name: true, email: true } },
+      buyer: { select: { name: true, email: true, address: true } },
       statusLogs: { orderBy: { changedAt: "asc" }, include: { changedBy: { select: { name: true, email: true } } } },
     },
   });
@@ -80,6 +80,9 @@ export default async function AgentOrdersPage() {
                   {o.status === "NEW" && <SubmitOrderButton orderId={o.id} />}
                 </div>
               </div>
+              {o.buyer.address && (
+                <div className="mt-1 text-xs text-zinc-500">Адрес: {o.buyer.address}</div>
+              )}
               <table className="mt-3 w-full text-sm">
                 <tbody>
                   {o.items.map((i) => (

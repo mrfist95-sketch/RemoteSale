@@ -129,6 +129,7 @@ export interface AgentClientStat {
   buyerId: string;
   buyerName: string;
   buyerEmail: string;
+  buyerAddress: string | null;
   orderSum: number;
   orderCount: number;
   debt: number;
@@ -138,7 +139,7 @@ export interface AgentClientStat {
 export async function getAgentClients(agentId: string) {
   return prisma.user.findMany({
     where: { agentId, role: "BUYER" },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, address: true },
     orderBy: { name: "asc" },
   });
 }
@@ -164,6 +165,7 @@ export async function getAgentStats(agentId: string): Promise<{
       buyerId: c.id,
       buyerName: c.name ?? c.email,
       buyerEmail: c.email,
+      buyerAddress: c.address,
       orderSum: sum,
       orderCount: orders.length,
       debt,
