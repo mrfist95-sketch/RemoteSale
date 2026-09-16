@@ -69,6 +69,11 @@ export default async function AgentOrdersPage() {
                     {o.buyer.name ?? o.buyer.email}
                   </Link>{" "}
                   · {formatDateTime(o.createdAt)}
+                  {o.buyer.address && (
+                    <span className="block text-xs font-normal text-zinc-500">
+                      Адрес: {o.buyer.address}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusBadge status={o.status} />
@@ -80,9 +85,6 @@ export default async function AgentOrdersPage() {
                   {o.status === "NEW" && <SubmitOrderButton orderId={o.id} />}
                 </div>
               </div>
-              {o.buyer.address && (
-                <div className="mt-1 text-xs text-zinc-500">Адрес: {o.buyer.address}</div>
-              )}
               <table className="mt-3 w-full text-sm">
                 <tbody>
                   {o.items.map((i) => (

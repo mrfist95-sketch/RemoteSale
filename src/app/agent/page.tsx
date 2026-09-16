@@ -23,7 +23,6 @@ export default async function AgentHome() {
             <thead className="text-left text-zinc-500">
               <tr>
                 <th className="py-2">Клиент</th>
-                <th className="py-2">Адрес</th>
                 <th className="py-2">Заказов</th>
                 <th className="py-2">Сумма</th>
                 <th className="py-2">Оплачено</th>
@@ -34,8 +33,12 @@ export default async function AgentHome() {
             <tbody>
               {stats.clients.map((c) => (
                 <tr key={c.buyerId} className="border-t border-zinc-100">
-                  <td className="py-2 font-medium">{c.buyerName}</td>
-                  <td className="py-2 text-zinc-600">{c.buyerAddress ?? "—"}</td>
+                  <td className="py-2 font-medium">
+                    <div>{c.buyerName}</div>
+                    {c.buyerAddress && (
+                      <div className="font-normal text-xs text-zinc-500">{c.buyerAddress}</div>
+                    )}
+                  </td>
                   <td className="py-2">{c.orderCount}</td>
                   <td className="py-2">{formatRub(c.orderSum)}</td>
                   <td className="py-2 text-green-700">{formatRub(c.paid)}</td>
@@ -49,7 +52,7 @@ export default async function AgentHome() {
               ))}
               {stats.clients.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-3 text-zinc-400">
+                  <td colSpan={6} className="py-3 text-zinc-400">
                     Клиенты не закреплены. Обратитесь к администратору.
                   </td>
                 </tr>
