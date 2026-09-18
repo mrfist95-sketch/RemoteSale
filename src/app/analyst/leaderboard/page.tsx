@@ -11,32 +11,31 @@ import {
 } from "@/components/LeaderboardRows";
 
 function Podium({ items }: { items: { name: string; sum: number }[] }) {
-  // Пьедестал: 2-1-3
+  // Стили по месту (0 = первое): метка, высота, градиент
+  const byPlace = [
+    { label: "I", height: "h-28", gradient: "from-amber-300 to-amber-500" },
+    { label: "II", height: "h-20", gradient: "from-slate-300 to-slate-400" },
+    { label: "III", height: "h-16", gradient: "from-orange-300 to-orange-400" },
+  ];
+  // Визуальный порядок колонок: 2-1-3
   const order = [1, 0, 2];
-  const heights = ["h-20", "h-28", "h-16"];
-  const labels = ["II", "I", "III"];
   return (
     <div className="flex items-end justify-center gap-2 py-4">
-      {order.map((idx) => {
-        const item = items[idx];
+      {order.map((placeIdx) => {
+        const item = items[placeIdx];
         if (!item) return null;
+        const s = byPlace[placeIdx];
         return (
-          <div key={idx} className="flex w-28 flex-col items-center">
-            <div className="mb-1 text-2xl">{MEDALS[idx]}</div>
+          <div key={placeIdx} className="flex w-28 flex-col items-center">
+            <div className="mb-1 text-2xl">{MEDALS[placeIdx]}</div>
             <div className="max-w-28 truncate text-center text-xs font-medium" title={item.name}>
               {item.name}
             </div>
             <div className="text-xs text-zinc-500">{formatRub(item.sum)}</div>
             <div
-              className={`mt-2 w-full ${heights[idx]} rounded-t-lg bg-gradient-to-b ${
-                idx === 0
-                  ? "from-slate-300 to-slate-400"
-                  : idx === 1
-                    ? "from-amber-300 to-amber-500"
-                    : "from-orange-300 to-orange-400"
-              } flex items-start justify-center pt-2 text-sm font-bold text-white`}
+              className={`mt-2 w-full ${s.height} rounded-t-lg bg-gradient-to-b ${s.gradient} flex items-start justify-center pt-2 text-sm font-bold text-white`}
             >
-              {labels[idx]}
+              {s.label}
             </div>
           </div>
         );
