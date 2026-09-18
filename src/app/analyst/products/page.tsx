@@ -4,6 +4,7 @@ import { getProductsReport, getProductFilterOptions, getAgentOptions } from "@/l
 import { formatRub } from "@/lib/format";
 import { PageHeader, StatCard, Card } from "@/components/ui";
 import ProductsReportFilters from "@/components/ProductsReportFilters";
+import ProductExpandableRow from "@/components/ProductExpandableRow";
 
 export default async function AnalystProductsPage({
   searchParams,
@@ -85,20 +86,7 @@ export default async function AnalystProductsPage({
               </thead>
               <tbody>
                 {groups.get(g)!.map((p) => (
-                  <tr key={p.productId} className="border-t border-zinc-100">
-                    <td className="py-2 font-medium">
-                      {p.name}
-                      {p.unit ? <span className="text-zinc-400"> ({p.unit})</span> : null}
-                    </td>
-                    <td className="py-2 text-zinc-600">{p.manufacturer ?? "—"}</td>
-                    <td className="py-2">{p.orderedQty}</td>
-                    <td className="py-2">{formatRub(p.orderedSum)}</td>
-                    <td className="py-2">{p.orderCount}</td>
-                    <td className="py-2">{p.buyerCount}</td>
-                    <td className="py-2 text-green-700">{formatRub(p.paidSum)}</td>
-                    <td className="py-2 text-red-700">{formatRub(p.unpaidSum)}</td>
-                    <td className="py-2 text-orange-700">{p.overdueSum > 0 ? formatRub(p.overdueSum) : "—"}</td>
-                  </tr>
+                  <ProductExpandableRow key={p.productId} p={p} />
                 ))}
               </tbody>
             </table>
