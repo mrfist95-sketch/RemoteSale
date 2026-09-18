@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { DEBT_STATUSES, computeOrderDebtInfo, type OrderDebtInfo } from "@/lib/rbac-core";
+import { DEBT_STATUSES, REPORT_STATUSES, computeOrderDebtInfo, type OrderDebtInfo } from "@/lib/rbac-core";
 
 function startOfPeriod(from?: string, to?: string) {
   return {
@@ -190,11 +190,19 @@ export interface GlobalStats {
 export async function getGlobalStats(from?: string, to?: string): Promise<GlobalStats> {
   const { from: f, to: t } = startOfPeriod(from, to);
   const orders = await prisma.order.findMany({
-    where: { createdAt: { gte: f, lte: t }, deleted: false },
+    where: {
+      createdAt: { gte: f, lte: t },
+      deleted: false,
+      status: { in: REPORT_STATUSES },
+    },
     select: { id: true, total: true, status: true, createdAt: true },
   });
   const payments = await prisma.payment.findMany({
-    where: { date: { gte: f, lte: t } },
+    where: {
+      date: { gte: f, lte: t },
+      orderId: { not: null },
+      order: { deleted: false, status: { in: REPORT_STATUSES } },
+    },
     select: { amount: true, date: true },
   });
   const debt = await getGlobalDebt();
@@ -263,8 +271,14 @@ async function getBuyerPaidInPeriod(
   from?: Date,
   to?: Date,
 ): Promise<number> {
+  // Только оплаты, привязанные к действующим (не удалённым, не отменённым) заказам
   const payments = await prisma.payment.findMany({
-    where: { buyerId, date: { gte: from, lte: to } },
+    where: {
+      buyerId,
+      orderId: { not: null },
+      date: { gte: from, lte: to },
+      order: { deleted: false, status: { not: "CANCELLED" } },
+    },
     select: { amount: true },
   });
   return payments.reduce((s, p) => s + p.amount, 0);
@@ -347,7 +361,12 @@ export async function getAgentsReport(from?: string, to?: string): Promise<Agent
     let debt = 0;
     for (const c of clients) {
       const orders = await prisma.order.findMany({
-        where: { buyerId: c.id, createdAt: { gte: f, lte: t }, deleted: false },
+        where: {
+          buyerId: c.id,
+          createdAt: { gte: f, lte: t },
+          deleted: false,
+          status: { in: REPORT_STATUSES },
+        },
         select: { id: true, total: true },
       });
       const orderIds = orders.map((o) => o.id);
@@ -394,7 +413,12 @@ export async function getAgentsReport(from?: string, to?: string): Promise<Agent
   const unassigned: AnalystClientStat[] = [];
   for (const c of unassignedClients) {
     const orders = await prisma.order.findMany({
-      where: { buyerId: c.id, createdAt: { gte: f, lte: t }, deleted: false },
+      where: {
+        buyerId: c.id,
+        createdAt: { gte: f, lte: t },
+        deleted: false,
+        status: { in: REPORT_STATUSES },
+      },
       select: { id: true, total: true },
     });
     const orderIds = orders.map((o) => o.id);
@@ -464,6 +488,8 @@ export interface ProductReportRow {
   productId: string;
   name: string;
   unit: string | null;
+  manufacturer: string | null;
+  categoryName: string | null;
   orderedQty: number;
   orderedSum: number;
   orderCount: number;
@@ -484,11 +510,32 @@ export interface ProductsReport {
   };
 }
 
-export async function getProductsReport(from?: string, to?: string): Promise<ProductsReport> {
+export interface ProductsReportFilter {
+  from?: string;
+  to?: string;
+  status?: string;
+  categoryId?: string;
+  manufacturer?: string;
+}
+
+export async function getProductsReport(filter: ProductsReportFilter = {}): Promise<ProductsReport> {
+  const { from, to, status, categoryId, manufacturer } = filter;
   const { from: f, to: t } = startOfPeriod(from, to);
 
+  // Товары, попадающие под фильтры категории/производителя
+  const productWhere: { categoryId?: string; manufacturer?: string } = {};
+  if (categoryId) productWhere.categoryId = categoryId;
+  if (manufacturer) productWhere.manufacturer = manufacturer;
+
   const orders = await prisma.order.findMany({
-    where: { createdAt: { gte: f, lte: t }, deleted: false },
+    where: {
+      createdAt: { gte: f, lte: t },
+      deleted: false,
+      status: status ? status : { in: REPORT_STATUSES },
+      ...(Object.keys(productWhere).length > 0
+        ? { items: { some: { product: productWhere } } }
+        : {}),
+    },
     select: {
       id: true,
       buyerId: true,
@@ -502,14 +549,30 @@ export async function getProductsReport(from?: string, to?: string): Promise<Pro
   const orderIds: string[] = [];
   const payByOrder = new Map<string, number>();
 
+  // id товаров, попадающих под фильтр категории/производителя
+  const productIds: Set<string> | null =
+    Object.keys(productWhere).length > 0
+      ? new Set(
+          (
+            await prisma.product.findMany({
+              where: productWhere,
+              select: { id: true },
+            })
+          ).map((p) => p.id),
+        )
+      : null;
+
   for (const o of orders) {
     orderIds.push(o.id);
     for (const it of o.items) {
+      if (productIds && !productIds.has(it.productId)) continue;
       if (!prodMap.has(it.productId)) {
         prodMap.set(it.productId, {
           productId: it.productId,
           name: it.name,
           unit: null,
+          manufacturer: null,
+          categoryName: null,
           orderedQty: 0,
           orderedSum: 0,
           orderCount: 0,
@@ -540,8 +603,10 @@ export async function getProductsReport(from?: string, to?: string): Promise<Pro
     }
   }
 
-  const units = await prisma.product.findMany({ select: { id: true, unit: true } });
-  const unitMap = new Map(units.map((u) => [u.id, u.unit]));
+  const prods = await prisma.product.findMany({
+    select: { id: true, unit: true, manufacturer: true, category: { select: { name: true } } },
+  });
+  const prodInfo = new Map(prods.map((u) => [u.id, u]));
 
   const debtInfo = await getOrdersDebtInfo(orderIds);
 
@@ -551,7 +616,10 @@ export async function getProductsReport(from?: string, to?: string): Promise<Pro
   let tPaid = 0;
   let tOverdue = 0;
   for (const [pid, row] of prodMap) {
-    row.unit = unitMap.get(pid) ?? null;
+    const info = prodInfo.get(pid);
+    row.unit = info?.unit ?? null;
+    row.manufacturer = info?.manufacturer ?? null;
+    row.categoryName = info?.category?.name ?? null;
     row.orderCount = prodOrders.get(pid)?.size ?? 0;
     row.buyerCount = prodBuyers.get(pid)?.size ?? 0;
     const oids = prodOrders.get(pid);
@@ -584,5 +652,30 @@ export async function getProductsReport(from?: string, to?: string): Promise<Pro
       unpaidSum: Math.max(0, tSum - tPaid),
       overdueSum: tOverdue,
     },
+  };
+}
+
+// Опции для фильтров отчёта товаров: производители и категории
+export async function getProductFilterOptions(): Promise<{
+  manufacturers: string[];
+  categories: { id: string; name: string }[];
+}> {
+  const [manufacturers, categories] = await Promise.all([
+    prisma.product.findMany({
+      where: { manufacturer: { not: null } },
+      select: { manufacturer: true },
+      distinct: ["manufacturer"],
+      orderBy: { manufacturer: "asc" },
+    }),
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
+  return {
+    manufacturers: manufacturers
+      .map((m) => m.manufacturer)
+      .filter((m): m is string => Boolean(m)),
+    categories,
   };
 }
