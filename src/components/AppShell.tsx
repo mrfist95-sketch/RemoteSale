@@ -31,6 +31,7 @@ const NAV: Record<string, NavItem[]> = {
     { href: "/analyst", label: "Сводная" },
     { href: "/analyst/agents", label: "Представители и клиенты" },
     { href: "/analyst/products", label: "Товары" },
+    { href: "/analyst/leaderboard", label: "Лидерборд" },
     { href: "/analyst/price-list", label: "Прайс-лист" },
   ],
   ADMIN: [
