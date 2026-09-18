@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { requireRole } from "@/lib/rbac";
-import { getProductsReport, getProductFilterOptions } from "@/lib/stats";
+import { getProductsReport, getProductFilterOptions, getAgentOptions } from "@/lib/stats";
 import { formatRub } from "@/lib/format";
 import { PageHeader, StatCard, Card } from "@/components/ui";
 import ProductsReportFilters from "@/components/ProductsReportFilters";
@@ -8,19 +8,21 @@ import ProductsReportFilters from "@/components/ProductsReportFilters";
 export default async function AnalystProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; status?: string; category?: string; manufacturer?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; status?: string; category?: string; manufacturer?: string; agent?: string }>;
 }) {
   await requireRole("ANALYST");
   const sp = await searchParams;
-  const [report, filterOptions] = await Promise.all([
+  const [report, filterOptions, agentOptions] = await Promise.all([
     getProductsReport({
       from: sp.from,
       to: sp.to,
       status: sp.status || undefined,
       categoryId: sp.category || undefined,
       manufacturer: sp.manufacturer || undefined,
+      agentId: sp.agent || undefined,
     }),
     getProductFilterOptions(),
+    getAgentOptions(),
   ]);
 
   // Группировка по товарной категории (null -> «Без группы»)
@@ -43,6 +45,7 @@ export default async function AnalystProductsPage({
           <ProductsReportFilters
             categories={filterOptions.categories}
             manufacturers={filterOptions.manufacturers}
+            agents={agentOptions}
           />
         </Suspense>
       </div>

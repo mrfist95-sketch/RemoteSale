@@ -298,15 +298,26 @@ async function getBuyerDebtInPeriod(
   return Math.max(0, receivable - paid);
 }
 
+export interface AnalystClientOrder {
+  orderId: string;
+  number: number;
+  createdAt: string; // ISO
+  status: string;
+  total: number;
+  statusHistory: { status: string; changedAt: string; changedByName: string | null }[];
+}
+
 export interface AnalystClientStat {
   buyerId: string;
   buyerName: string;
   buyerEmail: string;
+  buyerAddress: string | null;
   orderCount: number;
   orderSum: number;
   paid: number;
   debt: number;
   overdue: number;
+  orders: AnalystClientOrder[];
 }
 
 export interface AgentReportRow {
@@ -333,10 +344,56 @@ export interface AgentsReport {
   };
 }
 
-export async function getAgentsReport(from?: string, to?: string): Promise<AgentsReport> {
+// Один клиент: заказы с историей статусов
+async function getBuyerOrdersWithHistory(buyerId: string, f?: Date, t?: Date): Promise<{
+  orders: AnalystClientOrder[];
+  orderSum: number;
+}> {
+  const orders = await prisma.order.findMany({
+    where: {
+      buyerId,
+      createdAt: { gte: f, lte: t },
+      deleted: false,
+      status: { in: REPORT_STATUSES },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      number: true,
+      createdAt: true,
+      status: true,
+      total: true,
+      statusLogs: {
+        orderBy: { changedAt: "asc" },
+        include: { changedBy: { select: { name: true, email: true } } },
+      },
+    },
+  });
+  return {
+    orders: orders.map((o) => ({
+      orderId: o.id,
+      number: o.number,
+      createdAt: o.createdAt.toISOString(),
+      status: o.status,
+      total: o.total,
+      statusHistory: o.statusLogs.map((l) => ({
+        status: l.status,
+        changedAt: l.changedAt.toISOString(),
+        changedByName: l.changedBy?.name ?? l.changedBy?.email ?? null,
+      })),
+    })),
+    orderSum: orders.reduce((s, o) => s + o.total, 0),
+  };
+}
+
+export async function getAgentsReport(
+  from?: string,
+  to?: string,
+  agentFilterId?: string,
+): Promise<AgentsReport> {
   const { from: f, to: t } = startOfPeriod(from, to);
   const agents = await prisma.user.findMany({
-    where: { role: "AGENT" },
+    where: { role: "AGENT", ...(agentFilterId ? { id: agentFilterId } : {}) },
     orderBy: { name: "asc" },
     select: { id: true, name: true, email: true },
   });
@@ -353,24 +410,15 @@ export async function getAgentsReport(from?: string, to?: string): Promise<Agent
     const clients = await prisma.user.findMany({
       where: { agentId: a.id, role: "BUYER" },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, address: true },
     });
     const clientStats: AnalystClientStat[] = [];
     let sum = 0;
     let paid = 0;
     let debt = 0;
     for (const c of clients) {
-      const orders = await prisma.order.findMany({
-        where: {
-          buyerId: c.id,
-          createdAt: { gte: f, lte: t },
-          deleted: false,
-          status: { in: REPORT_STATUSES },
-        },
-        select: { id: true, total: true },
-      });
-      const orderIds = orders.map((o) => o.id);
-      const orderSum = orders.reduce((s, o) => s + o.total, 0);
+      const { orders: clientOrders, orderSum } = await getBuyerOrdersWithHistory(c.id, f, t);
+      const orderIds = clientOrders.map((o) => o.orderId);
       const paidAmt = await getBuyerPaidInPeriod(c.id, f, t);
       const debtAmt = await getBuyerDebtInPeriod(c.id, f, t);
       clientOrderIds.push({ buyerId: c.id, orderIds });
@@ -379,11 +427,13 @@ export async function getAgentsReport(from?: string, to?: string): Promise<Agent
         buyerId: c.id,
         buyerName: c.name ?? c.email,
         buyerEmail: c.email,
-        orderCount: orders.length,
+        buyerAddress: c.address,
+        orderCount: clientOrders.length,
         orderSum,
         paid: paidAmt,
         debt: debtAmt,
         overdue: 0,
+        orders: clientOrders,
       });
       sum += orderSum;
       paid += paidAmt;
@@ -408,21 +458,12 @@ export async function getAgentsReport(from?: string, to?: string): Promise<Agent
   const unassignedClients = await prisma.user.findMany({
     where: { agentId: null, role: "BUYER" },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, address: true },
   });
   const unassigned: AnalystClientStat[] = [];
   for (const c of unassignedClients) {
-    const orders = await prisma.order.findMany({
-      where: {
-        buyerId: c.id,
-        createdAt: { gte: f, lte: t },
-        deleted: false,
-        status: { in: REPORT_STATUSES },
-      },
-      select: { id: true, total: true },
-    });
-    const orderIds = orders.map((o) => o.id);
-    const orderSum = orders.reduce((s, o) => s + o.total, 0);
+    const { orders: clientOrders, orderSum } = await getBuyerOrdersWithHistory(c.id, f, t);
+    const orderIds = clientOrders.map((o) => o.orderId);
     const paidAmt = await getBuyerPaidInPeriod(c.id, f, t);
     const debtAmt = await getBuyerDebtInPeriod(c.id, f, t);
     clientOrderIds.push({ buyerId: c.id, orderIds });
@@ -431,11 +472,13 @@ export async function getAgentsReport(from?: string, to?: string): Promise<Agent
       buyerId: c.id,
       buyerName: c.name ?? c.email,
       buyerEmail: c.email,
-      orderCount: orders.length,
+      buyerAddress: c.address,
+      orderCount: clientOrders.length,
       orderSum,
       paid: paidAmt,
       debt: debtAmt,
       overdue: 0,
+      orders: clientOrders,
     });
     grandSum += orderSum;
     grandPaid += paidAmt;
@@ -516,10 +559,11 @@ export interface ProductsReportFilter {
   status?: string;
   categoryId?: string;
   manufacturer?: string;
+  agentId?: string;
 }
 
 export async function getProductsReport(filter: ProductsReportFilter = {}): Promise<ProductsReport> {
-  const { from, to, status, categoryId, manufacturer } = filter;
+  const { from, to, status, categoryId, manufacturer, agentId } = filter;
   const { from: f, to: t } = startOfPeriod(from, to);
 
   // Товары, попадающие под фильтры категории/производителя
@@ -532,6 +576,8 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
       createdAt: { gte: f, lte: t },
       deleted: false,
       status: status ? status : { in: REPORT_STATUSES },
+      // Фильтр по торговому представителю: через закреплённого за ним покупателя
+      ...(agentId ? { buyer: { agentId } } : {}),
       ...(Object.keys(productWhere).length > 0
         ? { items: { some: { product: productWhere } } }
         : {}),
@@ -692,4 +738,14 @@ export async function getProductFilterOptions(): Promise<{
       .filter((m): m is string => Boolean(m)),
     categories,
   };
+}
+
+// Список торговых представителей для фильтров отчётов
+export async function getAgentOptions(): Promise<{ id: string; name: string }[]> {
+  const agents = await prisma.user.findMany({
+    where: { role: "AGENT" },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, email: true },
+  });
+  return agents.map((a) => ({ id: a.id, name: a.name ?? a.email }));
 }
