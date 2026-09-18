@@ -1,18 +1,23 @@
 import { Suspense } from "react";
 import { requireRole } from "@/lib/rbac";
-import { getAgentsReport } from "@/lib/stats";
+import { getAgentsReport, getAgentOptions } from "@/lib/stats";
 import { formatRub } from "@/lib/format";
 import { PageHeader, StatCard, Card } from "@/components/ui";
 import PeriodFilter from "@/components/PeriodFilter";
+import AgentFilter from "@/components/AgentFilter";
+import { ClientExpandableRow } from "@/components/AnalystClientRow";
 
 export default async function AnalystAgentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; agent?: string }>;
 }) {
   await requireRole("ANALYST");
-  const { from, to } = await searchParams;
-  const report = await getAgentsReport(from, to);
+  const sp = await searchParams;
+  const [report, agentOptions] = await Promise.all([
+    getAgentsReport(sp.from, sp.to, sp.agent || undefined),
+    getAgentOptions(),
+  ]);
 
   return (
     <div>
@@ -20,9 +25,12 @@ export default async function AnalystAgentsPage({
         title="Отчёт по торговым представителям"
         subtitle="Закреплённые клиенты, продажи и задолженность"
       />
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end">
         <Suspense fallback={null}>
           <PeriodFilter />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AgentFilter agents={agentOptions} />
         </Suspense>
       </div>
 
@@ -43,10 +51,10 @@ export default async function AnalystAgentsPage({
               <span>
                 {a.agentName}{" "}
               <span className="text-xs font-normal text-zinc-400">
-                   · клиентов: {a.clientCount} · сумма {formatRub(a.totalSum)} · оплачено{" "}
-                   {formatRub(a.totalPaid)} · долг {formatRub(a.totalDebt)} · просрочено{" "}
-                   {formatRub(a.totalOverdue)}
-                 </span>
+                  · клиентов: {a.clientCount} · сумма {formatRub(a.totalSum)} · оплачено{" "}
+                  {formatRub(a.totalPaid)} · долг {formatRub(a.totalDebt)} · просрочено{" "}
+                  {formatRub(a.totalOverdue)}
+                  </span>
               </span>
             }
           >
@@ -57,7 +65,7 @@ export default async function AnalystAgentsPage({
                 <table className="w-full text-sm">
                   <thead className="text-left text-zinc-500">
                     <tr>
-                      <th className="py-2">Клиент</th>
+                      <th className="py-2">Клиент (адрес)</th>
                       <th className="py-2">Заказов</th>
                       <th className="py-2">Сумма</th>
                       <th className="py-2">Оплачено</th>
@@ -67,14 +75,20 @@ export default async function AnalystAgentsPage({
                   </thead>
                   <tbody>
                     {a.clients.map((c) => (
-                      <tr key={c.buyerId} className="border-t border-zinc-100">
-                        <td className="py-2 font-medium">{c.buyerName}</td>
-                        <td className="py-2">{c.orderCount}</td>
-                        <td className="py-2">{formatRub(c.orderSum)}</td>
-                      <td className="py-2 text-green-700">{formatRub(c.paid)}</td>
-                      <td className="py-2 text-red-700">{formatRub(c.debt)}</td>
-                      <td className="py-2 text-orange-700">{c.overdue > 0 ? formatRub(c.overdue) : "—"}</td>
-                    </tr>
+                      <ClientExpandableRow
+                        key={c.buyerId}
+                        c={{
+                          buyerId: c.buyerId,
+                          buyerName: c.buyerName,
+                          buyerAddress: c.buyerAddress,
+                          orderCount: c.orderCount,
+                          orderSum: c.orderSum,
+                          paid: c.paid,
+                          debt: c.debt,
+                          overdue: c.overdue,
+                          orders: c.orders,
+                        }}
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -92,22 +106,30 @@ export default async function AnalystAgentsPage({
             <table className="w-full text-sm">
               <thead className="text-left text-zinc-500">
                 <tr>
-                  <th className="py-2">Клиент</th>
+                  <th className="py-2">Клиент (адрес)</th>
                   <th className="py-2">Заказов</th>
                   <th className="py-2">Сумма</th>
                   <th className="py-2">Оплачено</th>
                   <th className="py-2">Долг</th>
+                  <th className="py-2">Просрочено</th>
                 </tr>
               </thead>
               <tbody>
                 {report.unassigned.map((c) => (
-                  <tr key={c.buyerId} className="border-t border-zinc-100">
-                    <td className="py-2 font-medium">{c.buyerName}</td>
-                    <td className="py-2">{c.orderCount}</td>
-                    <td className="py-2">{formatRub(c.orderSum)}</td>
-                    <td className="py-2 text-green-700">{formatRub(c.paid)}</td>
-                    <td className="py-2 text-red-700">{formatRub(c.debt)}</td>
-                  </tr>
+                  <ClientExpandableRow
+                    key={c.buyerId}
+                    c={{
+                      buyerId: c.buyerId,
+                      buyerName: c.buyerName,
+                      buyerAddress: c.buyerAddress,
+                      orderCount: c.orderCount,
+                      orderSum: c.orderSum,
+                      paid: c.paid,
+                      debt: c.debt,
+                      overdue: c.overdue,
+                      orders: c.orders,
+                    }}
+                  />
                 ))}
               </tbody>
             </table>

@@ -1,53 +1,38 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# === Node.js-проекты (SalesRemote) ===
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Секреты — НИКОГДА в git
+.env
+.env.*
+!.env.example
+mcp-config.json
+SERVER-CREDENTIALS.txt
+*credentials*.txt
+*password*.txt
+secrets/
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# node_modules и сборки — пересоздаются
+node_modules/
+.next/
+out/
+build/
+dist/
+.turbo/
+.eslintcache
 *.tsbuildinfo
-next-env.d.ts
 
-# базы данных SQLite (локальная разработка)
-*.db
-*.db-journal
-**/*.db
-**/*.db-journal
+# Сессии, логи, временные
+sessions/
+logs/
+*.log
+*.tmp
 
-# дистрибутив собирается скриптом, в git не нужен
-/dist/
+# Syncthing
+.stfolder/
+.stversions/
 
-# паник-логи Turbopack
-next-panic-*.log
+# ОС
+Thumbs.db
+.DS_Store
+# Prisma dev-база
+prisma/*.db
+prisma/*.db-*

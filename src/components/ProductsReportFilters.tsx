@@ -7,9 +7,11 @@ import { ORDER_STATUSES, ORDER_STATUS_LABELS } from "@/lib/rbac-core";
 export default function ProductsReportFilters({
   categories,
   manufacturers,
+  agents,
 }: {
   categories: { id: string; name: string }[];
   manufacturers: string[];
+  agents?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const sp = useSearchParams();
@@ -19,6 +21,7 @@ export default function ProductsReportFilters({
   const [status, setStatus] = useState(sp.get("status") ?? "");
   const [categoryId, setCategoryId] = useState(sp.get("category") ?? "");
   const [manufacturer, setManufacturer] = useState(sp.get("manufacturer") ?? "");
+  const [agentId, setAgentId] = useState(sp.get("agent") ?? "");
 
   function push(q: URLSearchParams) {
     router.push(q.toString() ? `${pathname}?${q.toString()}` : pathname);
@@ -32,6 +35,7 @@ export default function ProductsReportFilters({
     if (status) q.set("status", status);
     if (categoryId) q.set("category", categoryId);
     if (manufacturer) q.set("manufacturer", manufacturer);
+    if (agentId) q.set("agent", agentId);
     push(q);
   }
 
@@ -48,12 +52,14 @@ export default function ProductsReportFilters({
     setStatus("");
     setCategoryId("");
     setManufacturer("");
+    setAgentId("");
     router.push(pathname);
   }
 
   const statusNow = sp.get("status") ?? "";
   const categoryNow = sp.get("category") ?? "";
   const manufacturerNow = sp.get("manufacturer") ?? "";
+  const agentNow = sp.get("agent") ?? "";
 
   return (
     <form onSubmit={apply} className="flex flex-wrap items-end gap-2">
@@ -129,6 +135,26 @@ export default function ProductsReportFilters({
           ))}
         </select>
       </div>
+      {agents && (
+        <div>
+          <label className="block text-xs text-zinc-500">Торговый представитель</label>
+          <select
+            value={agentNow}
+            onChange={(e) => {
+              setAgentId(e.target.value);
+              change("agent", e.target.value, sp);
+            }}
+            className="rounded border border-zinc-300 px-2 py-1 text-sm"
+          >
+            <option value="">Все представители</option>
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <button type="submit" className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white">
         Применить
       </button>
