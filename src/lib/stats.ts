@@ -785,3 +785,194 @@ export async function getAgentOptions(): Promise<{ id: string; name: string }[]>
   });
   return agents.map((a) => ({ id: a.id, name: a.name ?? a.email }));
 }
+
+// ---------- Лидерборд по продажам ----------
+
+export interface LeaderboardProductDetail {
+  productId: string;
+  productName: string;
+  orderCount: number;
+  orderedQty: number;
+  orderedSum: number;
+}
+
+export interface LeaderboardAgentRow {
+  agentId: string;
+  agentName: string;
+  clientCount: number;
+  orderCount: number;
+  totalSum: number;
+  products: LeaderboardProductDetail[];
+}
+
+export interface LeaderboardProductRow {
+  productId: string;
+  productName: string;
+  unit: string | null;
+  orderCount: number;
+  buyerCount: number;
+  orderedQty: number;
+  orderedSum: number;
+  agents: {
+    agentId: string;
+    agentName: string;
+    orderCount: number;
+    orderedQty: number;
+    orderedSum: number;
+  }[];
+}
+
+export interface Leaderboard {
+  agents: LeaderboardAgentRow[];
+  products: LeaderboardProductRow[];
+}
+
+export async function getLeaderboard(from?: string, to?: string): Promise<Leaderboard> {
+  const { from: f, to: t } = startOfPeriod(from, to);
+  const orders = await prisma.order.findMany({
+    where: {
+      createdAt: { gte: f, lte: t },
+      deleted: false,
+      status: { in: REPORT_STATUSES },
+    },
+    select: {
+      id: true,
+      buyerId: true,
+      buyer: { select: { agent: { select: { id: true, name: true, email: true } } } },
+      items: { select: { productId: true, name: true, qty: true, price: true } },
+    },
+  });
+
+  // --- По торговым представителям ---
+  const agentMap = new Map<
+    string,
+    {
+      agentId: string;
+      agentName: string;
+      clients: Set<string>;
+      orders: Set<string>;
+      products: Map<string, LeaderboardProductDetail>;
+    }
+  >();
+
+  // --- По товарам ---
+  const productMap = new Map<
+    string,
+    {
+      productId: string;
+      productName: string;
+      buyers: Set<string>;
+      orders: Set<string>;
+      qty: number;
+      sum: number;
+      agents: Map<string, { agentId: string; agentName: string; orderCount: number; qty: number; sum: number }>;
+    }
+  >();
+
+  for (const o of orders) {
+    const agent = o.buyer.agent;
+    const agentId = agent?.id ?? null;
+    const agentName = agent?.name ?? agent?.email ?? "Без представителя";
+
+    if (agentId && !agentMap.has(agentId)) {
+      agentMap.set(agentId, {
+        agentId,
+        agentName,
+        clients: new Set(),
+        orders: new Set(),
+        products: new Map(),
+      });
+    }
+    const aRow = agentId ? agentMap.get(agentId)! : null;
+    if (aRow) {
+      aRow.clients.add(o.buyerId);
+      aRow.orders.add(o.id);
+    }
+
+    for (const it of o.items) {
+      const itemSum = it.qty * it.price;
+      if (aRow) {
+        if (!aRow.products.has(it.productId)) {
+          aRow.products.set(it.productId, {
+            productId: it.productId,
+            productName: it.name,
+            orderCount: 0,
+            orderedQty: 0,
+            orderedSum: 0,
+          });
+        }
+        const pd = aRow.products.get(it.productId)!;
+        pd.orderCount += 1;
+        pd.orderedQty += it.qty;
+        pd.orderedSum += itemSum;
+      }
+
+      if (!productMap.has(it.productId)) {
+        productMap.set(it.productId, {
+          productId: it.productId,
+          productName: it.name,
+          buyers: new Set(),
+          orders: new Set(),
+          qty: 0,
+          sum: 0,
+          agents: new Map(),
+        });
+      }
+      const pRow = productMap.get(it.productId)!;
+      pRow.buyers.add(o.buyerId);
+      pRow.orders.add(o.id);
+      pRow.qty += it.qty;
+      pRow.sum += itemSum;
+
+      if (agentId) {
+        if (!pRow.agents.has(agentId)) {
+          pRow.agents.set(agentId, {
+            agentId,
+            agentName,
+            orderCount: 0,
+            qty: 0,
+            sum: 0,
+          });
+        }
+        const ag = pRow.agents.get(agentId)!;
+        ag.orderCount += 1;
+        ag.qty += it.qty;
+        ag.sum += itemSum;
+      }
+    }
+  }
+
+  const agents: LeaderboardAgentRow[] = Array.from(agentMap.values())
+    .map((a) => ({
+      agentId: a.agentId,
+      agentName: a.agentName,
+      clientCount: a.clients.size,
+      orderCount: a.orders.size,
+      totalSum: Array.from(a.products.values()).reduce((s, p) => s + p.orderedSum, 0),
+      products: Array.from(a.products.values()).sort((x, y) => y.orderedSum - x.orderedSum),
+    }))
+    .sort((a, b) => b.totalSum - a.totalSum);
+
+  const products: LeaderboardProductRow[] = Array.from(productMap.values())
+    .map((p) => ({
+      productId: p.productId,
+      productName: p.productName,
+      unit: null,
+      orderCount: p.orders.size,
+      buyerCount: p.buyers.size,
+      orderedQty: p.qty,
+      orderedSum: p.sum,
+      agents: Array.from(p.agents.values())
+        .map((ag) => ({
+          agentId: ag.agentId,
+          agentName: ag.agentName,
+          orderCount: ag.orderCount,
+          orderedQty: ag.qty,
+          orderedSum: ag.sum,
+        }))
+        .sort((x, y) => y.orderedSum - x.orderedSum),
+    }))
+    .sort((a, b) => b.orderedSum - a.orderedSum);
+
+  return { agents, products };
+}
