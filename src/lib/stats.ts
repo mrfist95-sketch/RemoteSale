@@ -527,6 +527,15 @@ export async function getAgentsReport(
 
 // ---------- Отчёт в разрезе товаров ----------
 
+export interface ProductReportBuyerDetail {
+  buyerId: string;
+  buyerName: string;
+  agentName: string; // "—" если клиент без представителя
+  orderCount: number;
+  orderedQty: number;
+  orderedSum: number;
+}
+
 export interface ProductReportRow {
   productId: string;
   name: string;
@@ -540,6 +549,8 @@ export interface ProductReportRow {
   paidSum: number;
   unpaidSum: number;
   overdueSum: number;
+  // Детализация: кто (ТП) и кому (клиент) продавал этот товар
+  details: ProductReportBuyerDetail[];
 }
 
 export interface ProductsReport {
@@ -586,6 +597,7 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
       id: true,
       buyerId: true,
       total: true,
+      buyer: { select: { id: true, name: true, email: true, agent: { select: { name: true, email: true } } } },
       items: { select: { productId: true, name: true, qty: true, price: true } },
     },
   });
@@ -595,6 +607,8 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
   const prodBuyers = new Map<string, Set<string>>();
   // Сумма товара в конкретном заказе — для пропорционального распределения оплат и просрочки
   const prodOrderSum = new Map<string, Map<string, number>>();
+  // Детализация: товар -> (клиент -> статистика продаж через ТП)
+  const prodDetails = new Map<string, Map<string, ProductReportBuyerDetail>>();
   const orderTotals = new Map<string, number>();
   const orderIds: string[] = [];
   const payByOrder = new Map<string, number>();
@@ -631,6 +645,7 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
           paidSum: 0,
           unpaidSum: 0,
           overdueSum: 0,
+          details: [],
         });
       }
       const row = prodMap.get(it.productId)!;
@@ -643,6 +658,24 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
       perOrder.set(o.id, (perOrder.get(o.id) ?? 0) + it.qty * it.price);
       if (!prodBuyers.has(it.productId)) prodBuyers.set(it.productId, new Set());
       prodBuyers.get(it.productId)!.add(o.buyerId);
+
+      // Детализация товар -> клиент (с ТП)
+      if (!prodDetails.has(it.productId)) prodDetails.set(it.productId, new Map());
+      const byBuyer = prodDetails.get(it.productId)!;
+      if (!byBuyer.has(o.buyerId)) {
+        byBuyer.set(o.buyerId, {
+          buyerId: o.buyerId,
+          buyerName: o.buyer.name ?? o.buyer.email,
+          agentName: o.buyer.agent?.name ?? o.buyer.agent?.email ?? "—",
+          orderCount: 0,
+          orderedQty: 0,
+          orderedSum: 0,
+        });
+      }
+      const det = byBuyer.get(o.buyerId)!;
+      det.orderCount += 1;
+      det.orderedQty += it.qty;
+      det.orderedSum += it.qty * it.price;
     }
   }
 
@@ -694,6 +727,9 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
     row.paidSum = Number(paid.toFixed(2));
     row.unpaidSum = Number(Math.max(0, row.orderedSum - paid).toFixed(2));
     row.overdueSum = Number(overdue.toFixed(2));
+    row.details = Array.from(prodDetails.get(pid)?.values() ?? []).sort(
+      (a, b) => b.orderedSum - a.orderedSum,
+    );
     products.push(row);
     tQty += row.orderedQty;
     tSum += row.orderedSum;
