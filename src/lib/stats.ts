@@ -539,6 +539,7 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
     select: {
       id: true,
       buyerId: true,
+      total: true,
       items: { select: { productId: true, name: true, qty: true, price: true } },
     },
   });
@@ -546,6 +547,9 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
   const prodMap = new Map<string, ProductReportRow>();
   const prodOrders = new Map<string, Set<string>>();
   const prodBuyers = new Map<string, Set<string>>();
+  // Сумма товара в конкретном заказе — для пропорционального распределения оплат и просрочки
+  const prodOrderSum = new Map<string, Map<string, number>>();
+  const orderTotals = new Map<string, number>();
   const orderIds: string[] = [];
   const payByOrder = new Map<string, number>();
 
@@ -564,6 +568,7 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
 
   for (const o of orders) {
     orderIds.push(o.id);
+    orderTotals.set(o.id, o.total);
     for (const it of o.items) {
       if (productIds && !productIds.has(it.productId)) continue;
       if (!prodMap.has(it.productId)) {
@@ -587,6 +592,9 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
       row.orderedSum += it.qty * it.price;
       if (!prodOrders.has(it.productId)) prodOrders.set(it.productId, new Set());
       prodOrders.get(it.productId)!.add(o.id);
+      if (!prodOrderSum.has(it.productId)) prodOrderSum.set(it.productId, new Map());
+      const perOrder = prodOrderSum.get(it.productId)!;
+      perOrder.set(o.id, (perOrder.get(o.id) ?? 0) + it.qty * it.price);
       if (!prodBuyers.has(it.productId)) prodBuyers.set(it.productId, new Set());
       prodBuyers.get(it.productId)!.add(o.buyerId);
     }
@@ -623,17 +631,23 @@ export async function getProductsReport(filter: ProductsReportFilter = {}): Prom
     row.orderCount = prodOrders.get(pid)?.size ?? 0;
     row.buyerCount = prodBuyers.get(pid)?.size ?? 0;
     const oids = prodOrders.get(pid);
+    const perOrder = prodOrderSum.get(pid);
     let paid = 0;
     let overdue = 0;
     if (oids)
       for (const oid of oids) {
-        paid += payByOrder.get(oid) ?? 0;
+        // Доля товара в заказе: сумма позиций товара / итог заказа.
+        // Оплата и просрочка распределяются пропорционально, а не полным заказом на каждый товар
+        const share = perOrder?.get(oid) && orderTotals.get(oid)
+          ? (perOrder.get(oid) as number) / (orderTotals.get(oid) as number)
+          : 0;
+        paid += (payByOrder.get(oid) ?? 0) * share;
         const d = debtInfo.get(oid);
-        if (d?.overdue) overdue += d.unpaid;
+        if (d?.overdue) overdue += d.unpaid * share;
       }
-    row.paidSum = paid;
-    row.unpaidSum = Math.max(0, row.orderedSum - paid);
-    row.overdueSum = overdue;
+    row.paidSum = Number(paid.toFixed(2));
+    row.unpaidSum = Number(Math.max(0, row.orderedSum - paid).toFixed(2));
+    row.overdueSum = Number(overdue.toFixed(2));
     products.push(row);
     tQty += row.orderedQty;
     tSum += row.orderedSum;
