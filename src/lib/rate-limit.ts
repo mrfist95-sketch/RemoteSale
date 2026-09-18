@@ -1,9 +1,9 @@
 // Простой in-memory rate limiter для входа.
-// После 4 неудач подряд — блокировка с экспоненциальным ростом:
+// После 3 неудач подряд — блокировка с экспоненциальным ростом:
 // 30с, 1мин, 2мин, 4мин ... максимум 1 час.
 // Состояние в памяти процесса — достаточно для одного инстанса Next.
 
-export const MAX_ATTEMPTS = 4;
+export const MAX_ATTEMPTS = 3;
 export const BASE_COOLDOWN_MS = 30_000;
 export const MAX_COOLDOWN_MS = 3_600_000;
 
@@ -26,6 +26,7 @@ const store: Map<string, Entry> =
   globalForRateLimit.__loginRateLimit ?? (globalForRateLimit.__loginRateLimit = new Map());
 
 function backoffMs(fails: number): number {
+  // 3-я неудача -> 30с, 4-я -> 60с, 5-я -> 120с ... (экспонента 2)
   const exponent = Math.max(0, fails - MAX_ATTEMPTS);
   return Math.min(MAX_COOLDOWN_MS, BASE_COOLDOWN_MS * Math.pow(2, exponent));
 }

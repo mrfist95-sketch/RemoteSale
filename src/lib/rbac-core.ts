@@ -46,6 +46,10 @@ export const CANCELLABLE_STATUSES: string[] = ["NEW", "ENTERED"];
 // Долг возникает после отгрузки (и сохраняется до оплаты, включая доставку)
 export const DEBT_STATUSES: string[] = ["SHIPPED", "DELIVERED", "PAID"];
 
+// Статусы заказов, участвующие в суммах отчётов:
+// черновики (NEW) и отменённые (CANCELLED) в аналитику продаж не входят
+export const REPORT_STATUSES: string[] = ["ENTERED", "ASSEMBLED", "SHIPPED", "DELIVERED", "PAID"];
+
 // Статусы, которые может устанавливать курьер
 export const COURIER_SETTABLE: string[] = ["DELIVERED"];
 

@@ -23,7 +23,7 @@ export default async function AgentOrdersPage() {
     include: {
       items: true,
       payments: { orderBy: { date: "asc" } },
-      buyer: { select: { name: true, email: true } },
+      buyer: { select: { name: true, email: true, address: true } },
       statusLogs: { orderBy: { changedAt: "asc" }, include: { changedBy: { select: { name: true, email: true } } } },
     },
   });
@@ -69,6 +69,11 @@ export default async function AgentOrdersPage() {
                     {o.buyer.name ?? o.buyer.email}
                   </Link>{" "}
                   · {formatDateTime(o.createdAt)}
+                  {o.buyer.address && (
+                    <span className="block text-xs font-normal text-zinc-500">
+                      Адрес: {o.buyer.address}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusBadge status={o.status} />

@@ -415,7 +415,8 @@ export async function updateUser(
   if (input.deferral !== undefined) data.deferral = input.deferral;
   if (input.password) data.passwordHash = await bcrypt.hash(input.password, 10);
   await prisma.user.update({ where: { id }, data });
-  revalidatePath("/admin/users");
+  // Имя агента показывается на страницах всех ролей — обновляем везде
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 

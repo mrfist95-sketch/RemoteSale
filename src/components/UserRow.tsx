@@ -26,6 +26,7 @@ export default function UserRow({
   agents: { id: string; name: string | null; email: string }[];
 }) {
   const router = useRouter();
+  const [name, setName] = useState(user.name ?? "");
   const [role, setRole] = useState(user.role);
   const [agentId, setAgentId] = useState(user.agentId ?? "");
   const [address, setAddress] = useState(user.address ?? "");
@@ -51,6 +52,7 @@ export default function UserRow({
     setBusy(true);
     try {
       const data: {
+        name: string;
         role: string;
         agentId: string | null;
         address?: string;
@@ -59,6 +61,7 @@ export default function UserRow({
         deferral?: number;
         password?: string;
       } = {
+        name,
         role,
         agentId: role === "BUYER" ? agentId || null : null,
       };
@@ -91,7 +94,16 @@ export default function UserRow({
   return (
     <tr className="border-t border-zinc-100 align-top">
       <td className="py-2 pr-3">
-        <div className="font-medium">{user.name ?? "—"}</div>
+        <input
+          value={name}
+          disabled={busy}
+          placeholder="Имя"
+          onChange={(e) => setName(e.target.value)}
+          onBlur={() => {
+            if (name !== (user.name ?? "")) setTimeout(save, 0);
+          }}
+          className="w-40 rounded border border-zinc-300 px-2 py-1 text-sm"
+        />
         <div className="text-xs text-zinc-400">{user.email}</div>
       </td>
       <td className="py-2 pr-3">
