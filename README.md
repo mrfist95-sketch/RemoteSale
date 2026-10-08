@@ -47,12 +47,12 @@ docker compose up -d --build
 ```bash
 npm ci
 cp .env.example .env   # DATABASE_URL="file:./dev.db"
-npx prisma db push
+npm run db:migrate     # схема БД из prisma/migrations
 npm run seed           # создаёт администратора из ADMIN_EMAIL/ADMIN_PASSWORD
 npm run dev            # http://localhost:3000
 ```
 
-Тесты: `npm test` (Vitest: RBAC, расчёт долга/просрочки, генератор паролей и артикулов, парсер прайса, rate limit, IDOR).
+Тесты: `npm test` (Vitest: правила статусов и оплат, часовой пояс, генератор паролей и артикулов, парсер прайса, rate limit; интеграционные тесты server actions на SQLite-базе из миграций — права доступа/IDOR, гонки оплат и нумерации, откаты статусов, блокировка пользователей).
 
 ## Дистрибутив
 

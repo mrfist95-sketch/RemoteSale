@@ -254,7 +254,7 @@ export default function PriceListUploader() {
           <button
             onClick={apply}
             disabled={applying}
-            className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="rounded bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-50"
           >
             {applying ? "Сохранение…" : `Загрузить ${staged.totalRows} позиций`}
           </button>
@@ -332,7 +332,7 @@ export default function PriceListUploader() {
           <button
             type="submit"
             disabled={loading || !file}
-            className="rounded-md bg-zinc-900 px-4 py-2 text-white font-medium disabled:opacity-50"
+            className="rounded-md bg-brand-700 px-4 py-2 text-white font-medium disabled:opacity-50"
           >
             {loading ? "Проверка…" : "Проверить файл"}
           </button>

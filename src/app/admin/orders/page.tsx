@@ -10,6 +10,7 @@ import OrderPaymentsPanel, { type PaymentRow, type AuditRow } from "@/components
 import DeleteToggle from "@/components/DeleteToggle";
 import EditReasonsAdmin from "@/components/EditReasonsAdmin";
 import { PAYABLE_STATUSES } from "@/lib/rbac";
+import { dayKey } from "@/lib/tz";
 
 async function loadOrders(deleted: boolean) {
   const orders = await prisma.order.findMany({
@@ -78,7 +79,7 @@ function OrderCard({
         <div className="flex items-center gap-3">
           <span className="font-semibold">{formatRub(o.total)}</span>
           <StatusBadge status={o.status} />
-          <StatusSelect orderId={o.id} current={o.status} role="ADMIN" />
+          <StatusSelect orderId={o.id} current={o.status} role="ADMIN" paid={paid} total={o.total} />
           {overdue && (
             <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
               Просрочено {overdueDays} дн.
@@ -145,7 +146,7 @@ export default async function AdminOrdersPage() {
     loadOrders(true),
     prisma.orderEditReason.findMany({ orderBy: { name: "asc" } }),
   ]);
-  const todayISO = new Date().toLocaleDateString("sv-SE");
+  const todayISO = dayKey(new Date());
 
   return (
     <div>

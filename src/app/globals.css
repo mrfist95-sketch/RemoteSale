@@ -1,23 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Фирменная палитра (от themeColor #0b2545) и базовые токены */
+@theme {
+  --color-brand-50: #eef4fb;
+  --color-brand-100: #d9e6f5;
+  --color-brand-200: #b3cdeb;
+  --color-brand-300: #84acdc;
+  --color-brand-400: #5587c8;
+  --color-brand-500: #3468b0;
+  --color-brand-600: #24518f;
+  --color-brand-700: #1c4174;
+  --color-brand-800: #13325c;
+  --color-brand-900: #0b2545;
+  --font-sans: "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --background: #f6f7f9;
+  --foreground: #18181b;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1; /* цифры одинаковой ширины — суммы в таблицах ровнее */
+}
+
+/* Заметный фокус для клавиатуры */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Примечание: прежнее правило «main table { display:block; white-space:nowrap }»
    удалено — оно распирало таблицы на мобильных и уводило колонки за экран.
    Горизонтальный скролл широких таблиц обеспечивают обёртки overflow-x-auto. */
+
+@media print {
+  aside, header nav, [data-noprint] { display: none !important; }
+  body { background: #fff; }
+}

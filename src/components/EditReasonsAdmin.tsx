@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEditReason, deleteEditReason } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
 
 export default function EditReasonsAdmin({ reasons }: { reasons: { id: string; name: string }[] }) {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function EditReasonsAdmin({ reasons }: { reasons: { id: string; n
     setError(null);
     setBusy(true);
     try {
-      await createEditReason(name);
+      unwrap(await createEditReason(name));
       setName("");
       router.refresh();
     } catch (err) {
@@ -29,7 +30,7 @@ export default function EditReasonsAdmin({ reasons }: { reasons: { id: string; n
     if (!confirm(`Удалить причину «${n}»? Она останется в истории корректировок, но исчезнет из списка выбора.`)) return;
     setError(null);
     try {
-      await deleteEditReason(id);
+      unwrap(await deleteEditReason(id));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка");
@@ -63,7 +64,7 @@ export default function EditReasonsAdmin({ reasons }: { reasons: { id: string; n
             placeholder="Например: Нет на складе"
           />
         </label>
-        <button type="submit" disabled={busy} className="rounded bg-zinc-900 px-3 py-1.5 text-xs text-white disabled:opacity-50">
+        <button type="submit" disabled={busy} className="rounded bg-brand-700 px-3 py-1.5 text-xs text-white disabled:opacity-50">
           Добавить
         </button>
       </form>

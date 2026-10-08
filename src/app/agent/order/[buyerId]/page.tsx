@@ -13,7 +13,7 @@ export default async function AgentOrderForClient({
   const user = await requireRole("AGENT");
   const { buyerId } = await params;
   const buyer = await prisma.user.findUnique({ where: { id: buyerId } });
-  if (!buyer || buyer.agentId !== user.id) notFound();
+  if (!buyer || buyer.role !== "BUYER" || buyer.agentId !== user.id) notFound();
 
   const products = await prisma.product.findMany({
     where: { deleted: false },
@@ -48,6 +48,7 @@ export default async function AgentOrderForClient({
           }))}
           buyerId={buyerId}
           action={createOrder}
+          redirectTo="/agent/orders"
         />
       </Card>
     </div>

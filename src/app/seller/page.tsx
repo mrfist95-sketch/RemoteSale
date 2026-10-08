@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui";
 import SellerOrderBoard from "@/components/SellerOrderBoard";
 import SellerOrderFilters from "@/components/SellerOrderFilters";
 import Link from "next/link";
+import { periodRange } from "@/lib/tz";
 
 const PAGE_SIZE = 20;
 
@@ -21,8 +22,8 @@ export default async function SellerHome({
   const page = Math.max(1, Number(sp.page) || 1);
   const status =
     sp.status && (ORDER_STATUSES as readonly string[]).includes(sp.status) ? sp.status : undefined;
-  const fromDate = sp.from && !Number.isNaN(new Date(sp.from).getTime()) ? new Date(sp.from + "T00:00:00") : undefined;
-  const toDate = sp.to && !Number.isNaN(new Date(sp.to).getTime()) ? new Date(sp.to + "T23:59:59.999") : undefined;
+  // Границы дня — в поясе бизнеса (сервер в Docker работает в UTC)
+  const { from: fromDate, to: toDate } = periodRange(sp.from, sp.to);
 
   const where = {
     deleted: false,

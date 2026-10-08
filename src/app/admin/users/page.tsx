@@ -15,10 +15,10 @@ export default async function AdminUsersPage({
   const { role } = await searchParams;
   const users = await prisma.user.findMany({
     where: role ? { role } : undefined,
-    orderBy: { role: "asc" },
+    orderBy: [{ blocked: "asc" }, { role: "asc" }, { name: "asc" }],
   });
   const agents = await prisma.user.findMany({
-    where: { role: "AGENT" },
+    where: { role: "AGENT", blocked: false },
     orderBy: { name: "asc" },
     select: { id: true, name: true, email: true },
   });
@@ -60,6 +60,7 @@ export default async function AdminUsersPage({
                     phone: u.phone,
                     comment: u.comment,
                     deferral: u.deferral,
+                    blocked: u.blocked,
                   }}
                   agents={agents}
                 />
