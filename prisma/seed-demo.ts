@@ -26,14 +26,15 @@ async function main() {
 
   const agent = await prisma.user.upsert({
     where: { email: "agent@demo.onsale" },
-    update: { role: "AGENT" },
+    update: { role: "AGENT", blocked: false },
     create: { email: "agent@demo.onsale", name: "Торговый агент (демо)", passwordHash: pwd, role: "AGENT" },
   });
 
   for (const u of USERS) {
     await prisma.user.upsert({
       where: { email: u.email },
-      update: { role: u.role, ...(u.role === "BUYER" ? { agentId: agent.id } : {}) },
+      // При перезапуске демо снимаем блокировку, если посетитель заблокировал демо-аккаунт
+      update: { role: u.role, blocked: false, ...(u.role === "BUYER" ? { agentId: agent.id } : {}) },
       create: {
         email: u.email,
         name: u.name,

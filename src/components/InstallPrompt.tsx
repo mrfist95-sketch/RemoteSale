@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+
+const noopSubscribe = () => () => {};
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
@@ -9,12 +11,15 @@ type BIPEvent = Event & {
 
 export default function InstallPrompt() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
-  const [isIOS, setIsIOS] = useState(false);
+  // На сервере false, в браузере — по user agent (без setState в эффекте и без рассинхрона гидрации)
+  const isIOS = useSyncExternalStore(
+    noopSubscribe,
+    () => /iPhone|iPad|iPod/.test(navigator.userAgent),
+    () => false,
+  );
   const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
-    const ua = navigator.userAgent;
-    setIsIOS(/iPhone|iPad|iPod/.test(ua));
     const w = window as unknown as {
       addEventListener: (t: string, h: (e: Event) => void) => void;
       removeEventListener: (t: string, h: (e: Event) => void) => void;
@@ -48,7 +53,7 @@ export default function InstallPrompt() {
         <button
           type="button"
           onClick={install}
-          className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
+          className="rounded-md bg-brand-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
         >
           Установить приложение
         </button>

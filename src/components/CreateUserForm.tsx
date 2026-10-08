@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUser } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
 import { ROLE_LABELS } from "@/lib/rbac";
 import { generatePassword } from "@/lib/password";
 
@@ -43,7 +44,7 @@ export default function CreateUserForm({
     setError(null);
     setLoading(true);
     try {
-      await createUser({
+      unwrap(await createUser({
         email,
         name: name || undefined,
         password,
@@ -53,7 +54,7 @@ export default function CreateUserForm({
         phone: phone || undefined,
         comment: comment || undefined,
         deferral: Number(deferral) || 0,
-      });
+      }));
       setEmail("");
       setName("");
       setPassword("");
@@ -169,7 +170,7 @@ export default function CreateUserForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {loading ? "Создание…" : "Создать пользователя"}
         </button>

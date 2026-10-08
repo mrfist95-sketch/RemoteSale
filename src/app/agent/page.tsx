@@ -44,7 +44,7 @@ export default async function AgentHome() {
                   <td className="py-2 text-green-700">{formatRub(c.paid)}</td>
                   <td className="py-2 text-red-700">{formatRub(c.debt)}</td>
                   <td className="py-2 text-right">
-                    <Link href={`/agent/order/${c.buyerId}`} className="text-indigo-600 hover:underline">
+                    <Link href={`/agent/order/${c.buyerId}`} className="text-brand-600 hover:underline">
                       Создать заказ
                     </Link>
                   </td>

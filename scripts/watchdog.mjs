@@ -56,11 +56,23 @@ function check() {
   req.on("error", (err) => onFail(err.message));
 }
 
+// Корректная остановка: передаём сигнал Next.js и ждём его завершения
+// (до 10 с), чтобы не оборвать запросы и записи в базу.
 function shutdown(sig) {
+  if (stopping) return;
   stopping = true;
   log(`received ${sig}, stopping`);
-  if (child) child.kill(sig);
-  process.exit(0);
+  if (!child) process.exit(0);
+  const force = setTimeout(() => {
+    log("app did not exit in 10s, killing");
+    child?.kill("SIGKILL");
+    process.exit(0);
+  }, 10_000);
+  child.once("exit", () => {
+    clearTimeout(force);
+    process.exit(0);
+  });
+  child.kill(sig);
 }
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));

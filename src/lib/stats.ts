@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { periodRange } from "@/lib/tz";
 import { DEBT_STATUSES, REPORT_STATUSES, computeOrderDebtInfo, type OrderDebtInfo } from "@/lib/rbac-core";
 
+// Границы периода включительно, в поясе бизнеса ("2026-10-07" = весь день 7 октября)
 function startOfPeriod(from?: string, to?: string) {
-  return {
-    from: from ? new Date(from) : undefined,
-    to: to ? new Date(to) : undefined,
-  };
+  return periodRange(from, to);
 }
 
 // Долг/просрочка по конкретным заказам с учётом отсрочки покупателя

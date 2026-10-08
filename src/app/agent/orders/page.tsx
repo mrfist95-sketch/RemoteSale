@@ -65,7 +65,7 @@ export default async function AgentOrdersPage() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="text-sm">
                   <span className="font-semibold">Заказ №{o.number}</span> ·{" "}
-                  <Link href={`/agent/order/${o.buyerId}`} className="text-indigo-600 hover:underline">
+                  <Link href={`/agent/order/${o.buyerId}`} className="text-brand-600 hover:underline">
                     {o.buyer.name ?? o.buyer.email}
                   </Link>{" "}
                   · {formatDateTime(o.createdAt)}

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateBuyerProfile } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
+import { toast } from "@/components/Toaster";
 
 export default function BuyerProfileForm({
   initial,
@@ -21,13 +23,15 @@ export default function BuyerProfileForm({
     setBusy(true);
     setSaved(false);
     try {
-      await updateBuyerProfile({
+      unwrap(await updateBuyerProfile({
         address,
         phone,
         comment,
-      });
+      }));
       setSaved(true);
       router.refresh();
+    } catch (err) {
+      toast.fromError(err);
     } finally {
       setBusy(false);
     }
@@ -63,7 +67,7 @@ export default function BuyerProfileForm({
         <button
           type="submit"
           disabled={busy}
-          className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {busy ? "Сохранение…" : "Сохранить"}
         </button>

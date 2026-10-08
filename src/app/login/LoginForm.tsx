@@ -14,7 +14,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
   const wasBlockedRef = useRef(false);
 
@@ -24,13 +24,12 @@ export default function LoginForm() {
     return () => clearInterval(t);
   }, []);
 
+  const emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim().toLowerCase());
+
   // Опрашиваем статус лимита при смене email (debounce 600мс)
   useEffect(() => {
     const trimmed = email.trim().toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed)) {
-      setBlockedUntil(null);
-      return;
-    }
+    if (!emailValid) return;
     const timer = setTimeout(() => {
       fetch("/api/auth-status", {
         method: "POST",
@@ -49,9 +48,9 @@ export default function LoginForm() {
         .catch(() => {});
     }, 600);
     return () => clearTimeout(timer);
-  }, [email]);
+  }, [email, emailValid]);
 
-  const blockedSec = blockedUntil ? Math.max(0, Math.ceil((blockedUntil - now) / 1000)) : 0;
+  const blockedSec = emailValid && blockedUntil ? Math.max(0, Math.ceil((blockedUntil - now) / 1000)) : 0;
   const isBlocked = blockedUntil !== null && blockedSec > 0;
 
   async function onSubmit(e: React.FormEvent) {
@@ -135,7 +134,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading || isBlocked}
-        className="rounded-md bg-zinc-900 px-4 py-2 text-white font-medium disabled:opacity-50"
+        className="rounded-md bg-brand-700 px-4 py-2 text-white font-medium disabled:opacity-50"
       >
         {loading ? "Вход…" : isBlocked ? `Блокировка: ${blockedSec} с` : "Войти"}
       </button>

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { markOrderDeleted } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
+import { toast } from "@/components/Toaster";
 
 export default function DeleteToggle({ orderId, deleted }: { orderId: string; deleted: boolean }) {
   const router = useRouter();
@@ -12,8 +14,10 @@ export default function DeleteToggle({ orderId, deleted }: { orderId: string; de
       return;
     setBusy(true);
     try {
-      await markOrderDeleted(orderId, !deleted);
+      unwrap(await markOrderDeleted(orderId, !deleted));
       router.refresh();
+    } catch (e) {
+      toast.fromError(e);
     } finally {
       setBusy(false);
     }

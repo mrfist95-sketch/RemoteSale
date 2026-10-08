@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitOrder } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
 
 export default function SubmitOrderButton({ orderId }: { orderId: string }) {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function SubmitOrderButton({ orderId }: { orderId: string }) {
     setLoading(true);
     setError(null);
     try {
-      await submitOrder(orderId);
+      unwrap(await submitOrder(orderId));
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
@@ -28,7 +29,7 @@ export default function SubmitOrderButton({ orderId }: { orderId: string }) {
       <button
         onClick={onClick}
         disabled={loading}
-        className="rounded bg-zinc-900 px-2.5 py-1 text-xs text-white disabled:opacity-50"
+        className="rounded bg-brand-700 px-2.5 py-1 text-xs text-white disabled:opacity-50"
         title="Черновик станет заказом: его увидит продавец; редактировать будет нельзя"
       >
         {loading ? "…" : "Передать в работу"}

@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatRub } from "@/lib/format";
@@ -154,11 +155,11 @@ export default function ProductEditor({ products, categories }: { products: Row[
     setBusy(id);
     setError(null);
     try {
-      await updateProduct(id, {
+      unwrap(await updateProduct(id, {
         price: Number(rows[id].price),
         stock: Math.max(0, Math.floor(Number(rows[id].stock) || 0)),
         categoryId: rows[id].categoryId === "null" ? null : rows[id].categoryId,
-      });
+      }));
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка сохранения");
@@ -178,14 +179,14 @@ export default function ProductEditor({ products, categories }: { products: Row[
     try {
       if (kind === "soft") {
         if (!confirm(`Пометить на удаление ${ids.length} поз.? Они исчезнут из каталога и форм заказа.`)) return;
-        const res = await deleteProducts(ids);
+        const res = unwrap(await deleteProducts(ids));
         setNotice(`Помечено на удаление: ${res.count}`);
       } else if (kind === "restore") {
-        const res = await restoreProducts(ids);
+        const res = unwrap(await restoreProducts(ids));
         setNotice(`Восстановлено: ${res.count}`);
       } else {
         if (!confirm("ЖЁСТКОЕ удаление из базы. Товары с историей заказов будут пропущены. Продолжить?")) return;
-        const res = await hardDeleteProducts(ids);
+        const res = unwrap(await hardDeleteProducts(ids));
         setNotice(`Жёстко удалено: ${res.count}` + (res.skippedMessage ? `. ${res.skippedMessage}` : ""));
       }
       setSelected(new Set());
@@ -199,7 +200,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
     e.preventDefault();
     setCatError(null);
     try {
-      await createCategory(newCat);
+      unwrap(await createCategory(newCat));
       setNewCat("");
       router.refresh();
     } catch (err) {
@@ -215,7 +216,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
     }
     if (!confirm("Перенести все товары в выбранную категорию и удалить исходную?")) return;
     try {
-      await mergeCategories(mergeFrom, mergeTo);
+      unwrap(await mergeCategories(mergeFrom, mergeTo));
       setMergeFrom("");
       setMergeTo("");
       router.refresh();
@@ -227,7 +228,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
   async function doDeleteCategory(id: string) {
     if (!confirm("Удалить категорию? Товары останутся без категории.")) return;
     try {
-      await deleteCategory(id);
+      unwrap(await deleteCategory(id));
       router.refresh();
     } catch (err) {
       setCatError(err instanceof Error ? err.message : "Ошибка");
@@ -239,7 +240,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
     setNError(null);
     setNBusy(true);
     try {
-      const res = await createProduct({
+      const res = unwrap(await createProduct({
         name: nName,
         article: nArticle, // пустая строка -> сгенерируется автоматически
         unit: nUnit,
@@ -247,7 +248,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
         stock: Math.max(0, Math.floor(Number(nStock) || 0)),
         manufacturer: nManu,
         categoryId: nCat === "null" ? null : nCat,
-      });
+      }));
       setNotice(`Позиция добавлена, артикул: ${res.article}`);
       setNName("");
       setNArticle("");
@@ -322,7 +323,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
                 placeholder="Например: Крепёж"
               />
             </label>
-            <button type="submit" className="rounded bg-zinc-900 px-3 py-1.5 text-xs text-white">
+            <button type="submit" className="rounded bg-brand-700 px-3 py-1.5 text-xs text-white">
               Добавить
             </button>
           </form>
@@ -464,7 +465,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
         </span>
         <button
           onClick={() => setAddOpen((v) => !v)}
-          className="ml-auto rounded bg-zinc-900 px-3 py-1.5 text-xs text-white"
+          className="ml-auto rounded bg-brand-700 px-3 py-1.5 text-xs text-white"
         >
           {addOpen ? "Скрыть форму" : "+ Добавить позицию"}
         </button>
@@ -548,7 +549,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
             <button
               type="submit"
               disabled={nBusy}
-              className="rounded bg-zinc-900 px-3 py-1.5 text-xs text-white disabled:opacity-50"
+              className="rounded bg-brand-700 px-3 py-1.5 text-xs text-white disabled:opacity-50"
             >
               {nBusy ? "…" : "Добавить"}
             </button>
@@ -629,7 +630,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
                   <button
                     onClick={() => save(p.id)}
                     disabled={busy === p.id}
-                    className="rounded bg-zinc-900 px-2 py-1 text-xs text-white disabled:opacity-50"
+                    className="rounded bg-brand-700 px-2 py-1 text-xs text-white disabled:opacity-50"
                   >
                     {busy === p.id ? "…" : "Сохранить"}
                   </button>
