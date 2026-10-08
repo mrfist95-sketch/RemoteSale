@@ -72,3 +72,13 @@ src/
 prisma/           schema.prisma, seed.ts, migrations/
 scripts/          watchdog.mjs, gen-icons.mjs, make-dist.mjs
 ```
+## Документация
+
+Техническая (как это работает):
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — архитектура, роли, сессии, правила статусов и оплат
+- [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md) — таблицы, связи, инварианты
+- [`docs/API.md`](docs/API.md) — все server actions и HTTP-маршруты
+- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — запуск, миграции, деплой, бэкап и откат, тесты
+
+Руководства пользователей по ролям: `docs/admin.md`, `agent.md`, `analyst.md`, `buyer.md`, `courier.md`, `seller.md`.
