@@ -1,10 +1,11 @@
 #!/bin/sh
 set -e
 
-# Apply schema to the database (works for both SQLite and Postgres via DATABASE_URL)
-npx prisma db push --accept-data-loss
+# Обновление схемы БД: резервная копия + baseline + `prisma migrate deploy`.
+# Никогда не удаляет данные; при ошибке миграции контейнер не стартует.
+node scripts/db-migrate.mjs
 
-# Seed: создаёт администратора из ADMIN_EMAIL/ADMIN_PASSWORD.
+# Seed: создаёт администратора из ADMIN_EMAIL/ADMIN_PASSWORD (идемпотентно).
 # Без пароля приложение не поднимется — это защита от "пустого" продакшена.
 npm run seed
 

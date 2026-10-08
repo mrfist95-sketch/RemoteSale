@@ -9,6 +9,8 @@
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
     "db:push": "prisma db push",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "typecheck": "tsc --noEmit",
     "gen:icons": "node scripts/gen-icons.mjs",
     "test": "vitest run"
   },
@@ -27,7 +29,8 @@
     "prisma": "^6.19.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "recharts": "^3.10.1"
+    "recharts": "^3.10.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
