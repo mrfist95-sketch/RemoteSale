@@ -136,7 +136,7 @@ export default function OrderPaymentsPanel({
   }
 
   return (
-    <div className="mt-3 border-t border-zinc-100 pt-3">
+    <div className="mt-3 border-t border-slate-100 pt-3">
       {/* Финансовое состояние заказа */}
       <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span>Сумма: <b>{formatRub(total)}</b></span>
@@ -152,7 +152,7 @@ export default function OrderPaymentsPanel({
       {canPay && debt > 0 ? (
         <form onSubmit={submit} className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="block text-xs text-zinc-500">Сумма, ₽ (долг: {debt.toFixed(2)})</label>
+            <label className="block text-xs text-slate-500">Сумма, ₽ (долг: {debt.toFixed(2)})</label>
             <input
               type="number"
               min={0}
@@ -160,12 +160,12 @@ export default function OrderPaymentsPanel({
               max={debt}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-32 rounded border border-zinc-300 px-2 py-1 text-sm"
+              className="w-32 rounded border border-slate-300 px-2 py-1 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs text-zinc-500">Способ</label>
-            <select value={method} onChange={(e) => setMethod(e.target.value)} className="rounded border border-zinc-300 px-2 py-1 text-sm">
+            <label className="block text-xs text-slate-500">Способ</label>
+            <select value={method} onChange={(e) => setMethod(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm">
               <option value="card">Карта</option>
               <option value="cash">Наличные</option>
               <option value="invoice">Счёт</option>
@@ -182,10 +182,10 @@ export default function OrderPaymentsPanel({
           >
             вся задолженность ({debt.toFixed(2)} ₽)
           </button>
-          <span className="text-xs text-zinc-400">При полной оплате заказ автоматически станет «Оплачен»</span>
+          <span className="text-xs text-slate-400">При полной оплате заказ автоматически станет «Оплачен»</span>
         </form>
       ) : (
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-slate-400">
           {canPay ? "Задолженность по заказу погашена" : "Приём оплаты доступен в статусах «Собран», «Отгружен», «Доставлен»"}
         </p>
       )}
@@ -193,17 +193,17 @@ export default function OrderPaymentsPanel({
       {/* Внесённые оплаты */}
       {payments.length > 0 && (
         <div className="mt-2">
-          <p className="text-xs font-medium text-zinc-500">Оплаты по заказу:</p>
+          <p className="text-xs font-medium text-slate-500">Оплаты по заказу:</p>
           <ul className="mt-1 space-y-1">
             {payments.map((p) => {
               const sameDay = dayKey(new Date(p.date)) === todayISO;
               const canCorrect = isAdmin || sameDay;
               return (
-                <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-zinc-100 bg-zinc-50 px-2 py-1 text-xs">
+                <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-slate-100 bg-slate-50 px-2 py-1 text-xs">
                   <span className="font-semibold text-green-700">+{formatRub(p.amount)}</span>
                   <span>{METHOD_LABELS[p.method] ?? p.method}</span>
-                  <span className="text-zinc-400">{new Date(p.date).toLocaleString("ru-RU")}</span>
-                  {p.createdBy && <span className="text-zinc-400">· {p.createdBy.name ?? p.createdBy.email}</span>}
+                  <span className="text-slate-400">{new Date(p.date).toLocaleString("ru-RU")}</span>
+                  {p.createdBy && <span className="text-slate-400">· {p.createdBy.name ?? p.createdBy.email}</span>}
                   {canCorrect ? (
                     editing === p.id ? (
                       <span className="inline-flex flex-wrap items-center gap-1">
@@ -212,9 +212,9 @@ export default function OrderPaymentsPanel({
                           step="0.01"
                           value={editAmount}
                           onChange={(e) => setEditAmount(e.target.value)}
-                          className="w-24 rounded border border-zinc-300 px-1 py-0.5"
+                          className="w-24 rounded border border-slate-300 px-1 py-0.5"
                         />
-                        <select value={editMethod} onChange={(e) => setEditMethod(e.target.value)} className="rounded border border-zinc-300 px-1 py-0.5">
+                        <select value={editMethod} onChange={(e) => setEditMethod(e.target.value)} className="rounded border border-slate-300 px-1 py-0.5">
                           <option value="card">Карта</option>
                           <option value="cash">Наличные</option>
                           <option value="invoice">Счёт</option>
@@ -223,10 +223,10 @@ export default function OrderPaymentsPanel({
                           value={editReason}
                           onChange={(e) => setEditReason(e.target.value)}
                           placeholder="причина"
-                          className="w-36 rounded border border-zinc-300 px-1 py-0.5"
+                          className="w-36 rounded border border-slate-300 px-1 py-0.5"
                         />
                         <button onClick={() => saveEdit(p.id)} className="rounded bg-brand-700 px-2 py-0.5 text-white">Сохранить</button>
-                        <button onClick={() => setEditing(null)} className="text-zinc-400 hover:underline">отмена</button>
+                        <button onClick={() => setEditing(null)} className="text-slate-400 hover:underline">отмена</button>
                       </span>
                     ) : (
                       <>
@@ -235,7 +235,7 @@ export default function OrderPaymentsPanel({
                       </>
                     )
                   ) : (
-                    <span className="text-zinc-300" title="Только оплаты, внесённые сегодня; старые корректирует администратор">
+                    <span className="text-slate-300" title="Только оплаты, внесённые сегодня; старые корректирует администратор">
                       корректировка — только у админа
                     </span>
                   )}
@@ -252,18 +252,18 @@ export default function OrderPaymentsPanel({
       {/* История операций по оплатам/корректировкам */}
       {audit.length > 0 && (
         <div className="mt-2">
-          <button onClick={() => setShowAudit((v) => !v)} className="text-xs text-zinc-500 hover:underline">
+          <button onClick={() => setShowAudit((v) => !v)} className="text-xs text-slate-500 hover:underline">
             {showAudit ? "Скрыть историю операций" : `История операций (${audit.length})`}
           </button>
           {showAudit && (
             <ul className="mt-1 space-y-1">
               {audit.map((a) => (
-                <li key={a.id} className="text-xs text-zinc-500">
-                  <span className="font-medium text-zinc-700">{ACTION_LABELS[a.action] ?? a.action}</span>
+                <li key={a.id} className="text-xs text-slate-500">
+                  <span className="font-medium text-slate-700">{ACTION_LABELS[a.action] ?? a.action}</span>
                   {a.amount != null && <span className="text-green-700"> {a.amount.toFixed(2)} ₽</span>}
                   <span> · {new Date(a.createdAt).toLocaleString("ru-RU")}</span>
-                  {a.user && <span className="text-zinc-400"> · {a.user.name ?? a.user.email}</span>}
-                  {a.details && <span className="block text-zinc-400">{a.details}</span>}
+                  {a.user && <span className="text-slate-400"> · {a.user.name ?? a.user.email}</span>}
+                  {a.details && <span className="block text-slate-400">{a.details}</span>}
                 </li>
               ))}
             </ul>

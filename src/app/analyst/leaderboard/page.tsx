@@ -31,7 +31,7 @@ function Podium({ items }: { items: { name: string; sum: number }[] }) {
             <div className="max-w-28 truncate text-center text-xs font-medium" title={item.name}>
               {item.name}
             </div>
-            <div className="text-xs text-zinc-500">{formatRub(item.sum)}</div>
+            <div className="text-xs text-slate-500">{formatRub(item.sum)}</div>
             <div
               className={`mt-2 w-full ${s.height} rounded-t-lg bg-gradient-to-b ${s.gradient} flex items-start justify-center pt-2 text-sm font-bold text-white`}
             >
@@ -74,7 +74,7 @@ export default async function AnalystLeaderboardPage({
             items={board.agents.slice(0, 3).map((a) => ({ name: a.agentName, sum: a.totalSum }))}
           />
         ) : (
-          <p className="text-sm text-zinc-400">Нет продаж за период</p>
+          <p className="text-sm text-slate-400">Нет продаж за период</p>
         )}
       </Card>
 
@@ -86,14 +86,14 @@ export default async function AnalystLeaderboardPage({
               .map((p) => ({ name: p.productName, sum: p.orderedSum }))}
           />
         ) : (
-          <p className="text-sm text-zinc-400">Нет продаж за период</p>
+          <p className="text-sm text-slate-400">Нет продаж за период</p>
         )}
       </Card>
 
       <Card title="Торговые представители (по сумме продаж)" className="mb-4">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-zinc-500">
+            <thead className="text-left text-slate-500">
               <tr>
                 <th className="py-2 w-10 text-center">Место</th>
                 <th className="py-2">Представитель</th>
@@ -108,7 +108,7 @@ export default async function AnalystLeaderboardPage({
               ))}
               {board.agents.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-3 text-zinc-400">Нет продаж за период</td>
+                  <td colSpan={5} className="py-3 text-slate-400">Нет продаж за период</td>
                 </tr>
               )}
             </tbody>
@@ -119,7 +119,7 @@ export default async function AnalystLeaderboardPage({
       <Card title="Товары (по сумме продаж)">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-zinc-500">
+            <thead className="text-left text-slate-500">
               <tr>
                 <th className="py-2 w-10 text-center">Место</th>
                 <th className="py-2">Товар</th>
@@ -135,7 +135,7 @@ export default async function AnalystLeaderboardPage({
               ))}
               {board.products.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-3 text-zinc-400">Нет продаж за период</td>
+                  <td colSpan={6} className="py-3 text-slate-400">Нет продаж за период</td>
                 </tr>
               )}
             </tbody>

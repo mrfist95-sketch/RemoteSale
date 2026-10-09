@@ -173,17 +173,17 @@ export default function PriceListUploader() {
   if (staged) {
     return (
       <div className="space-y-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
           Шаг 2 из 2 — подтвердите загрузку
         </p>
 
-        <div className="rounded border border-zinc-200 bg-zinc-50 p-3 text-sm">
+        <div className="rounded border border-slate-200 bg-slate-50 p-3 text-sm">
           Файл распознан: <b>{staged.totalRows}</b> позиций, кодировка <b>{staged.encoding}</b>
           {staged.delimiter ? `, разделитель «${staged.delimiter === "\t" ? "таб" : staged.delimiter}»` : ""}.
         </div>
 
         {staged.categories.length === 0 ? (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-slate-500">
             Категорий в файле нет — товары будут добавлены без категории.
           </p>
         ) : (
@@ -191,8 +191,8 @@ export default function PriceListUploader() {
             <p className="text-sm font-medium">Товарные категории в файле:</p>
 
             {existingInFile.length > 0 && (
-              <div className="rounded border border-zinc-200 p-3 text-sm">
-                <p className="mb-2 text-xs text-zinc-500">Уже есть в справочнике (объединяются автоматически):</p>
+              <div className="rounded border border-slate-200 p-3 text-sm">
+                <p className="mb-2 text-xs text-slate-500">Уже есть в справочнике (объединяются автоматически):</p>
                 <div className="flex flex-wrap gap-2">
                   {existingInFile.map((c) => (
                     <span key={c} className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
@@ -233,7 +233,7 @@ export default function PriceListUploader() {
                       <select
                         value={mergeTargets[c] ?? ""}
                         onChange={(e) => setMergeTargets((p) => ({ ...p, [c]: e.target.value }))}
-                        className="rounded border border-zinc-300 px-2 py-0.5 text-xs"
+                        className="rounded border border-slate-300 px-2 py-0.5 text-xs"
                       >
                         <option value="">— выберите —</option>
                         {staged.existingCategories.map((x) => (
@@ -258,7 +258,7 @@ export default function PriceListUploader() {
           >
             {applying ? "Сохранение…" : `Загрузить ${staged.totalRows} позиций`}
           </button>
-          <button onClick={cancel} className="text-sm text-zinc-500 hover:underline">
+          <button onClick={cancel} className="text-sm text-slate-500 hover:underline">
             Отмена
           </button>
         </div>
@@ -270,7 +270,7 @@ export default function PriceListUploader() {
   // ---------- Шаг 1: выбор файла ----------
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
         Шаг 1 из 2 — проверьте файл
       </p>
 
@@ -295,33 +295,33 @@ export default function PriceListUploader() {
             }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
-            className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed px-4 py-8 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 ${
-              dragOver ? "border-blue-500 bg-blue-50" : "border-zinc-300 bg-zinc-50 hover:bg-zinc-100"
+            className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed px-4 py-8 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 ${
+              dragOver ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-slate-50 hover:bg-slate-100"
             }`}
           >
             <span className="text-2xl" aria-hidden>
               📄
             </span>
-            <span className="text-sm font-medium text-zinc-700">
+            <span className="text-sm font-medium text-slate-700">
               Выберите файл или перетащите его сюда
             </span>
-            <span className="text-xs text-zinc-400">CSV или XLSX, до 15 МБ</span>
+            <span className="text-xs text-slate-400">CSV или XLSX, до 15 МБ</span>
           </button>
         ) : (
           /* Карточка выбранного файла */
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2">
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2">
             <div className="flex min-w-0 items-center gap-2 text-sm">
               <span className="text-xl" aria-hidden>
                 📄
               </span>
               <span className="truncate font-medium">{file.name}</span>
-              <span className="shrink-0 text-xs text-zinc-400">{formatSize(file.size)}</span>
+              <span className="shrink-0 text-xs text-slate-400">{formatSize(file.size)}</span>
             </div>
             <button
               type="button"
               onClick={() => pickFile(null)}
               title="Убрать файл"
-              className="shrink-0 rounded px-2 py-0.5 text-sm text-zinc-400 hover:bg-zinc-100 hover:text-red-600"
+              className="shrink-0 rounded px-2 py-0.5 text-sm text-slate-400 hover:bg-slate-100 hover:text-red-600"
             >
               ×
             </button>
@@ -332,19 +332,19 @@ export default function PriceListUploader() {
           <button
             type="submit"
             disabled={loading || !file}
-            className="rounded-md bg-brand-700 px-4 py-2 text-white font-medium disabled:opacity-50"
+            className="rounded-lg bg-brand-700 px-4 py-2 text-white font-medium disabled:opacity-50"
           >
             {loading ? "Проверка…" : "Проверить файл"}
           </button>
           <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="text-zinc-400">Шаблоны:</span>
+            <span className="text-slate-400">Шаблоны:</span>
             <a href="/api/price-template?format=csv" className="text-blue-600 hover:underline">
               скачать CSV
             </a>
             <a href="/api/price-template?format=xlsx" className="text-blue-600 hover:underline">
               скачать XLSX
             </a>
-            <span className="text-zinc-400">
+            <span className="text-slate-400">
               (CSV в UTF-8 с BOM, разделитель «;» — открывается в Excel корректно)
             </span>
           </div>

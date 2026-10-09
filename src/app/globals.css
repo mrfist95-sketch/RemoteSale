@@ -2,29 +2,72 @@
 
 /* Фирменная палитра (от themeColor #0b2545) и базовые токены */
 @theme {
-  --color-brand-50: #eef4fb;
-  --color-brand-100: #d9e6f5;
-  --color-brand-200: #b3cdeb;
-  --color-brand-300: #84acdc;
-  --color-brand-400: #5587c8;
-  --color-brand-500: #3468b0;
-  --color-brand-600: #24518f;
-  --color-brand-700: #1c4174;
-  --color-brand-800: #13325c;
-  --color-brand-900: #0b2545;
-  --font-sans: "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+  /* Кобальт на ночном синем: живой акцент для действий, глубокий фон для навигации */
+  --color-brand-50: #eff3ff;
+  --color-brand-100: #dfe7ff;
+  --color-brand-200: #c0cfff;
+  --color-brand-300: #93abff;
+  --color-brand-400: #6483f7;
+  --color-brand-500: #4264ec;
+  --color-brand-600: #3350d9;
+  --color-brand-700: #2a42b3;
+  --color-brand-800: #233689;
+  --color-brand-900: #0e1838;
+  --color-ink-800: #141f45;
+  --color-ink-900: #0b1330;
+  --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+  --shadow-soft: 0 1px 2px rgb(14 24 56 / 0.04), 0 4px 16px -4px rgb(14 24 56 / 0.08);
 }
 
 :root {
-  --background: #f6f7f9;
-  --foreground: #18181b;
+  --background: #f2f4f9;
+  --foreground: #161b2e;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgb(66 100 236 / 0.07), transparent 60%),
+    var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   font-feature-settings: "tnum" 1; /* цифры одинаковой ширины — суммы в таблицах ровнее */
+}
+
+/* Базовый вид форм и таблиц. Внутри @layer base — любой класс Tailwind его переопределит */
+@layer base {
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  ::selection { background: var(--color-brand-200); color: var(--color-brand-900); }
+  h1, h2, h3 { letter-spacing: -0.015em; }
+
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    border-radius: 0.6rem;
+    border-color: #d5dae6;
+    background-color: #fff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):hover, select:hover, textarea:hover { border-color: #b8c0d4; }
+  input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px rgb(66 100 236 / 0.18);
+    outline: none;
+  }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand-600); }
+
+  button { transition: background-color .15s, color .15s, box-shadow .15s, transform .05s; }
+  button:not(:disabled):active { transform: translateY(1px); }
+  button:disabled { cursor: not-allowed; }
+
+  table { border-collapse: separate; border-spacing: 0; }
+  thead th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #6b7390;
+    white-space: nowrap;
+  }
+  tbody tr { transition: background-color .12s; }
+  tbody tr:hover { background-color: rgb(66 100 236 / 0.035); }
 }
 
 /* Заметный фокус для клавиатуры */
@@ -37,6 +80,10 @@ body {
 /* Примечание: прежнее правило «main table { display:block; white-space:nowrap }»
    удалено — оно распирало таблицы на мобильных и уводило колонки за экран.
    Горизонтальный скролл широких таблиц обеспечивают обёртки overflow-x-auto. */
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
 
 @media print {
   aside, header nav, [data-noprint] { display: none !important; }

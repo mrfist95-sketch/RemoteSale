@@ -7,7 +7,7 @@ export const MEDALS = ["🥇", "🥈", "🥉"];
 
 function PlaceMark({ index }: { index: number }) {
   if (index < 3) return <span className="text-xl leading-none">{MEDALS[index]}</span>;
-  return <span className="text-sm text-zinc-400">{index + 1}</span>;
+  return <span className="text-sm text-slate-400">{index + 1}</span>;
 }
 
 export function AgentLeaderboardRow({
@@ -27,7 +27,7 @@ export function AgentLeaderboardRow({
   const [open, setOpen] = useState(false);
   return (
     <Fragment>
-      <tr className={`border-t border-zinc-100 ${index < 3 ? "bg-yellow-50/40" : ""}`}>
+      <tr className={`border-t border-slate-100 ${index < 3 ? "bg-yellow-50/40" : ""}`}>
         <td className="w-10 py-2 text-center">
           <PlaceMark index={index} />
         </td>
@@ -37,7 +37,7 @@ export function AgentLeaderboardRow({
             onClick={() => setOpen(!open)}
             className="flex items-center gap-1 text-left font-medium hover:text-brand-600"
           >
-            <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
+            <span className="w-4 shrink-0 text-slate-400">{open ? "▼" : "▶"}</span>
             {row.agentName}
           </button>
         </td>
@@ -46,11 +46,11 @@ export function AgentLeaderboardRow({
         <td className="py-2 font-semibold">{formatRub(row.totalSum)}</td>
       </tr>
       {open && (
-        <tr className="bg-zinc-50/60">
+        <tr className="bg-slate-50/60">
           <td colSpan={5} className="px-6 py-2">
-            <div className="text-xs font-medium text-zinc-600">Проданные товары:</div>
+            <div className="text-xs font-medium text-slate-600">Проданные товары:</div>
             <table className="mt-1 w-full text-xs">
-              <thead className="text-left text-zinc-400">
+              <thead className="text-left text-slate-400">
                 <tr>
                   <th className="py-1">Товар</th>
                   <th className="py-1">Заказов</th>
@@ -61,11 +61,11 @@ export function AgentLeaderboardRow({
               <tbody>
                 {row.products.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-2 text-zinc-400">Нет продаж за период</td>
+                    <td colSpan={4} className="py-2 text-slate-400">Нет продаж за период</td>
                   </tr>
                 )}
                 {row.products.map((p) => (
-                  <tr key={p.productId} className="border-t border-zinc-200">
+                  <tr key={p.productId} className="border-t border-slate-200">
                     <td className="py-1 font-medium">{p.productName}</td>
                     <td className="py-1">{p.orderCount}</td>
                     <td className="py-1">{p.orderedQty}</td>
@@ -99,7 +99,7 @@ export function ProductLeaderboardRow({
   const [open, setOpen] = useState(false);
   return (
     <Fragment>
-      <tr className={`border-t border-zinc-100 ${index < 3 ? "bg-yellow-50/40" : ""}`}>
+      <tr className={`border-t border-slate-100 ${index < 3 ? "bg-yellow-50/40" : ""}`}>
         <td className="w-10 py-2 text-center">
           <PlaceMark index={index} />
         </td>
@@ -109,7 +109,7 @@ export function ProductLeaderboardRow({
             onClick={() => setOpen(!open)}
             className="flex items-center gap-1 text-left font-medium hover:text-brand-600"
           >
-            <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
+            <span className="w-4 shrink-0 text-slate-400">{open ? "▼" : "▶"}</span>
             {row.productName}
           </button>
         </td>
@@ -119,11 +119,11 @@ export function ProductLeaderboardRow({
         <td className="py-2 font-semibold">{formatRub(row.orderedSum)}</td>
       </tr>
       {open && (
-        <tr className="bg-zinc-50/60">
+        <tr className="bg-slate-50/60">
           <td colSpan={6} className="px-6 py-2">
-            <div className="text-xs font-medium text-zinc-600">Кто продавал:</div>
+            <div className="text-xs font-medium text-slate-600">Кто продавал:</div>
             <table className="mt-1 w-full text-xs">
-              <thead className="text-left text-zinc-400">
+              <thead className="text-left text-slate-400">
                 <tr>
                   <th className="py-1">Торговый представитель</th>
                   <th className="py-1">Заказов</th>
@@ -134,13 +134,13 @@ export function ProductLeaderboardRow({
               <tbody>
                 {row.agents.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-2 text-zinc-400">
+                    <td colSpan={4} className="py-2 text-slate-400">
                       Все продажи без представителя
                     </td>
                   </tr>
                 )}
                 {row.agents.map((a) => (
-                  <tr key={a.agentId} className="border-t border-zinc-200">
+                  <tr key={a.agentId} className="border-t border-slate-200">
                     <td className="py-1 font-medium">{a.agentName}</td>
                     <td className="py-1">{a.orderCount}</td>
                     <td className="py-1">{a.orderedQty}</td>

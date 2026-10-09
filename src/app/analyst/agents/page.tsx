@@ -50,7 +50,7 @@ export default async function AnalystAgentsPage({
             title={
               <span>
                 {a.agentName}{" "}
-              <span className="text-xs font-normal text-zinc-400">
+              <span className="text-xs font-normal text-slate-400">
                   · клиентов: {a.clientCount} · сумма {formatRub(a.totalSum)} · оплачено{" "}
                   {formatRub(a.totalPaid)} · долг {formatRub(a.totalDebt)} · просрочено{" "}
                   {formatRub(a.totalOverdue)}
@@ -59,11 +59,11 @@ export default async function AnalystAgentsPage({
             }
           >
             {a.clients.length === 0 ? (
-              <p className="text-sm text-zinc-400">Нет закреплённых клиентов</p>
+              <p className="text-sm text-slate-400">Нет закреплённых клиентов</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-left text-zinc-500">
+                  <thead className="text-left text-slate-500">
                     <tr>
                       <th className="py-2">Клиент (адрес)</th>
                       <th className="py-2">Заказов</th>
@@ -100,11 +100,11 @@ export default async function AnalystAgentsPage({
 
       <Card title="Клиенты без торгового представителя" className="mt-4">
         {report.unassigned.length === 0 ? (
-          <p className="text-sm text-zinc-400">Все клиенты закреплены за представителями</p>
+          <p className="text-sm text-slate-400">Все клиенты закреплены за представителями</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-zinc-500">
+              <thead className="text-left text-slate-500">
                 <tr>
                   <th className="py-2">Клиент (адрес)</th>
                   <th className="py-2">Заказов</th>

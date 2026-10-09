@@ -36,7 +36,7 @@ export default async function AdminUsersPage({
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-zinc-500">
+            <thead className="text-left text-slate-500">
               <tr>
                 <th className="py-2">Пользователь</th>
                 <th className="py-2">Роль</th>
@@ -68,8 +68,8 @@ export default async function AdminUsersPage({
             </tbody>
           </table>
         </div>
-        {users.length === 0 && <p className="mt-3 text-sm text-zinc-400">Нет пользователей</p>}
-        <p className="mt-3 text-xs text-zinc-400">
+        {users.length === 0 && <p className="mt-3 text-sm text-slate-400">Нет пользователей</p>}
+        <p className="mt-3 text-xs text-slate-400">
           Роли: {Object.entries(ROLE_LABELS).map(([k, v]) => `${k}=${v}`).join(", ")}
         </p>
       </Card>

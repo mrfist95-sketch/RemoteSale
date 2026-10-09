@@ -79,13 +79,13 @@ export default function CreateUserForm({
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+        className="rounded border border-slate-300 px-2 py-1 text-sm"
       />
       <input
         placeholder="Имя"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+        className="rounded border border-slate-300 px-2 py-1 text-sm"
       />
       <div>
         <div className="flex items-center gap-2">
@@ -98,12 +98,12 @@ export default function CreateUserForm({
               setPassword(e.target.value);
               setGenerated(null);
             }}
-            className="w-full rounded border border-zinc-300 px-2 py-1 text-sm"
+            className="w-full rounded border border-slate-300 px-2 py-1 text-sm"
           />
           <button
             type="button"
             onClick={genPassword}
-            className="whitespace-nowrap rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
+            className="whitespace-nowrap rounded border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
           >
             Сгенерировать
           </button>
@@ -117,7 +117,7 @@ export default function CreateUserForm({
       <select
         value={role}
         onChange={(e) => setRole(e.target.value)}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+        className="rounded border border-slate-300 px-2 py-1 text-sm"
       >
         {ROLES.map((r) => (
           <option key={r} value={r}>
@@ -129,7 +129,7 @@ export default function CreateUserForm({
         value={agentId}
         onChange={(e) => setAgentId(e.target.value)}
         disabled={role !== "BUYER"}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm disabled:opacity-50"
+        className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-50"
       >
         <option value="">— агент не выбран —</option>
         {agents.map((a) => (
@@ -142,19 +142,19 @@ export default function CreateUserForm({
         placeholder="Адрес"
         value={address}
         onChange={(e) => setAddress(e.target.value)}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+        className="rounded border border-slate-300 px-2 py-1 text-sm"
       />
       <input
         placeholder="Телефон"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+        className="rounded border border-slate-300 px-2 py-1 text-sm"
       />
       <input
         placeholder="Комментарий"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+        className="rounded border border-slate-300 px-2 py-1 text-sm"
       />
       <label className="flex items-center gap-1 text-sm">
         Отсрочка, дн.
@@ -163,7 +163,7 @@ export default function CreateUserForm({
           min={0}
           value={deferral}
           onChange={(e) => setDeferral(e.target.value)}
-          className="w-16 rounded border border-zinc-300 px-1 py-1"
+          className="w-16 rounded border border-slate-300 px-1 py-1"
         />
       </label>
       <div className="col-span-2 flex items-center gap-2 sm:col-span-3">

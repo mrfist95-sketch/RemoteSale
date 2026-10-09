@@ -17,7 +17,7 @@ import { ORDER_STATUS_LABELS } from "@/lib/rbac";
 const COLORS = ["#0ea5e9", "#6366f1", "#f59e0b", "#a855f7", "#22c55e", "#ef4444"];
 
 export function MonthlyChart({ data }: { data: { month: string; sum: number; paid?: number }[] }) {
-  if (data.length === 0) return <p className="text-sm text-zinc-400">Нет данных</p>;
+  if (data.length === 0) return <p className="text-sm text-slate-400">Нет данных</p>;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data}>
@@ -37,7 +37,7 @@ export function ClientsChart({
 }: {
   data: { name: string; sum: number; debt: number }[];
 }) {
-  if (data.length === 0) return <p className="text-sm text-zinc-400">Нет данных</p>;
+  if (data.length === 0) return <p className="text-sm text-slate-400">Нет данных</p>;
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} layout="vertical" margin={{ left: 40 }}>
@@ -53,7 +53,7 @@ export function ClientsChart({
 }
 
 export function StatusChart({ data }: { data: { status: string; count: number }[] }) {
-  if (data.length === 0) return <p className="text-sm text-zinc-400">Нет данных</p>;
+  if (data.length === 0) return <p className="text-sm text-slate-400">Нет данных</p>;
   const rows = data.map((d) => ({ name: ORDER_STATUS_LABELS[d.status] ?? d.status, value: d.count }));
   return (
     <ResponsiveContainer width="100%" height={260}>

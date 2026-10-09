@@ -27,14 +27,14 @@ export default async function RouteListPage() {
         <h1 className="text-lg font-bold">Маршрутный лист — {formatDate(new Date())}</h1>
       </div>
 
-      {orders.length === 0 && <p className="text-sm text-zinc-400">Нет заказов к передаче</p>}
+      {orders.length === 0 && <p className="text-sm text-slate-400">Нет заказов к передаче</p>}
       <div className="space-y-4">
         {orders.map((o) => (
-          <div key={o.id} className="break-inside-avoid rounded-lg border border-zinc-300 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-zinc-300 pb-2">
+          <div key={o.id} className="break-inside-avoid rounded-lg border border-slate-300 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-slate-300 pb-2">
               <div className="text-sm">
                 <span className="font-bold">Заказ №{o.number}</span>
-                <span className="ml-2 text-zinc-600">
+                <span className="ml-2 text-slate-600">
                   {o.buyer.name ?? o.buyer.email}
                 </span>
               </div>
@@ -42,23 +42,23 @@ export default async function RouteListPage() {
             </div>
             <div className="mt-2 grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
               <div>
-                <span className="text-zinc-500">Адрес: </span>
+                <span className="text-slate-500">Адрес: </span>
                 {o.buyer.address ?? "—"}
               </div>
               <div>
-                <span className="text-zinc-500">Телефон: </span>
+                <span className="text-slate-500">Телефон: </span>
                 {o.buyer.phone ?? "—"}
               </div>
               {o.buyer.comment && (
                 <div className="sm:col-span-2">
-                  <span className="text-zinc-500">Комментарий: </span>
+                  <span className="text-slate-500">Комментарий: </span>
                   {o.buyer.comment}
                 </div>
               )}
             </div>
             <table className="mt-2 w-full text-sm">
               <thead>
-                <tr className="text-left text-zinc-500">
+                <tr className="text-left text-slate-500">
                   <th className="py-1">Товар</th>
                   <th className="py-1 text-right">Кол-во</th>
                   <th className="py-1 text-right">Сумма</th>
@@ -66,7 +66,7 @@ export default async function RouteListPage() {
               </thead>
               <tbody>
                 {o.items.map((i) => (
-                  <tr key={i.id} className="border-t border-zinc-100">
+                  <tr key={i.id} className="border-t border-slate-100">
                     <td className="py-1">{i.name}</td>
                     <td className="py-1 text-right">{i.qty}</td>
                     <td className="py-1 text-right">{formatRub(i.qty * i.price)}</td>
@@ -76,12 +76,12 @@ export default async function RouteListPage() {
               <tfoot>
                 <tr>
                   <td />
-                  <td className="pt-1 text-right text-zinc-500">Итого</td>
+                  <td className="pt-1 text-right text-slate-500">Итого</td>
                   <td className="pt-1 text-right font-bold">{formatRub(o.total)}</td>
                 </tr>
               </tfoot>
             </table>
-            <div className="mt-2 border-t border-dashed border-zinc-300 pt-2 text-xs text-zinc-400">
+            <div className="mt-2 border-t border-dashed border-slate-300 pt-2 text-xs text-slate-400">
               Подпись получателя: ____________________
             </div>
           </div>

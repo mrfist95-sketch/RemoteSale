@@ -71,7 +71,7 @@ export default async function AnalystProductsPage({
         <Card key={g} title={g} className="mb-4">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-zinc-500">
+              <thead className="text-left text-slate-500">
                 <tr>
                   <th className="py-2">Товар</th>
                   <th className="py-2">Производитель</th>
@@ -96,7 +96,7 @@ export default async function AnalystProductsPage({
 
       {report.products.length === 0 && (
         <Card title="Товары">
-          <p className="py-3 text-sm text-zinc-400">Нет заказов за выбранный период и фильтры</p>
+          <p className="py-3 text-sm text-slate-400">Нет заказов за выбранный период и фильтры</p>
         </Card>
       )}
     </div>
