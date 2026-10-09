@@ -13,7 +13,7 @@ const DEMO_ACCOUNTS = [
 export default function LoginPage() {
   const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
   return (
-    <div className="grid min-h-full md:grid-cols-[1.05fr_1fr]">
+    <div className="grid min-h-dvh md:grid-cols-[1.05fr_1fr]">
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-ink-800 to-ink-900 p-12 text-white md:flex">
         <div
           aria-hidden
