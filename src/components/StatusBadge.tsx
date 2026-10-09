@@ -11,7 +11,7 @@ const COLORS: Record<string, string> = {
 };
 
 export default function StatusBadge({ status }: { status: string }) {
-  const cls = COLORS[status] ?? "bg-zinc-100 text-zinc-700";
+  const cls = COLORS[status] ?? "bg-slate-100 text-slate-700";
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${cls}`}>
       {ORDER_STATUS_LABELS[status] ?? status}

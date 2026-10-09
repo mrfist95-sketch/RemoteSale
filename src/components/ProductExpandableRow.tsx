@@ -32,21 +32,21 @@ export default function ProductExpandableRow({ p }: { p: ProductRowView }) {
 
   return (
     <Fragment>
-      <tr className="border-t border-zinc-100">
+      <tr className="border-t border-slate-100">
         <td className="py-2">
           <button
             type="button"
             onClick={() => setOpen(!open)}
             className="flex items-center gap-1 text-left font-medium hover:text-brand-600"
           >
-            <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
+            <span className="w-4 shrink-0 text-slate-400">{open ? "▼" : "▶"}</span>
             <span>
               {p.name}
-              {p.unit ? <span className="text-zinc-400"> ({p.unit})</span> : null}
+              {p.unit ? <span className="text-slate-400"> ({p.unit})</span> : null}
             </span>
           </button>
         </td>
-        <td className="py-2 text-zinc-600">{p.manufacturer ?? "—"}</td>
+        <td className="py-2 text-slate-600">{p.manufacturer ?? "—"}</td>
         <td className="py-2">{p.orderedQty}</td>
         <td className="py-2">{formatRub(p.orderedSum)}</td>
         <td className="py-2">{p.orderCount}</td>
@@ -56,13 +56,13 @@ export default function ProductExpandableRow({ p }: { p: ProductRowView }) {
         <td className="py-2 text-orange-700">{p.overdueSum > 0 ? formatRub(p.overdueSum) : "—"}</td>
       </tr>
       {open && (
-        <tr className="bg-zinc-50/60">
+        <tr className="bg-slate-50/60">
           <td colSpan={9} className="px-6 py-2">
-            <div className="text-xs font-medium text-zinc-600">
+            <div className="text-xs font-medium text-slate-600">
               Кто и кому продавал этот товар:
             </div>
             <table className="mt-1 w-full text-xs">
-              <thead className="text-left text-zinc-400">
+              <thead className="text-left text-slate-400">
                 <tr>
                   <th className="py-1">Торговый представитель</th>
                   <th className="py-1">Клиент</th>
@@ -74,13 +74,13 @@ export default function ProductExpandableRow({ p }: { p: ProductRowView }) {
               <tbody>
                 {p.details.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-2 text-zinc-400">
+                    <td colSpan={5} className="py-2 text-slate-400">
                       Нет данных за выбранный период
                     </td>
                   </tr>
                 )}
                 {p.details.map((d) => (
-                  <tr key={d.buyerId} className="border-t border-zinc-200">
+                  <tr key={d.buyerId} className="border-t border-slate-200">
                     <td className="py-1">{d.agentName}</td>
                     <td className="py-1 font-medium">{d.buyerName}</td>
                     <td className="py-1">{d.orderCount}</td>

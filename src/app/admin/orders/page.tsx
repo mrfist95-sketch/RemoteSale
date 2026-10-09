@@ -73,7 +73,7 @@ function OrderCard({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm">
           <span className="font-semibold">Заказ №{o.number}</span> · {o.buyer.name ?? o.buyer.email}
-          {o.agent && <span className="text-zinc-400"> · агент: {o.agent.name}</span>} ·{" "}
+          {o.agent && <span className="text-slate-400"> · агент: {o.agent.name}</span>} ·{" "}
           {formatDateTime(o.createdAt)}
         </div>
         <div className="flex items-center gap-3">
@@ -89,7 +89,7 @@ function OrderCard({
         </div>
       </div>
       {(o.buyer.address || o.buyer.phone) && (
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
           {o.buyer.address && <span>Адрес: {o.buyer.address}</span>}
           {o.buyer.phone && <span>Тел: {o.buyer.phone}</span>}
           {o.buyer.deferral > 0 && <span>Отсрочка: {o.buyer.deferral} дн.</span>}
@@ -98,7 +98,7 @@ function OrderCard({
       <table className="mt-3 w-full text-sm">
         <tbody>
           {o.items.map((i) => (
-            <tr key={i.id} className="border-t border-zinc-100">
+            <tr key={i.id} className="border-t border-slate-100">
               <td className="py-1">{i.name}</td>
               <td className="py-1 text-right">{i.qty} × {formatRub(i.price)}</td>
               <td className="py-1 text-right font-medium">{formatRub(i.qty * i.price)}</td>
@@ -155,7 +155,7 @@ export default async function AdminOrdersPage() {
       <EditReasonsAdmin reasons={reasons.map((r) => ({ id: r.id, name: r.name }))} />
 
       <div className="space-y-3">
-        {active.length === 0 && <p className="text-sm text-zinc-400">Заказов пока нет</p>}
+        {active.length === 0 && <p className="text-sm text-slate-400">Заказов пока нет</p>}
         {active.map((x) => (
           <OrderCard key={x.o.id} o={x.o} paid={x.paid} overdueDays={x.overdueDays} overdue={x.overdue} deleted={false} todayISO={todayISO} />
         ))}
@@ -163,7 +163,7 @@ export default async function AdminOrdersPage() {
 
       {deleted.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-sm font-semibold text-zinc-500">Удалённые (скрыты из отчётов)</h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-500">Удалённые (скрыты из отчётов)</h2>
           <div className="space-y-3">
             {deleted.map((x) => (
               <OrderCard key={x.o.id} o={x.o} paid={x.paid} overdueDays={x.overdueDays} overdue={x.overdue} deleted={true} todayISO={todayISO} />

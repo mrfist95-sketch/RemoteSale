@@ -37,8 +37,8 @@ export default async function BuyerHome() {
           </Link>
         }
       >
-        {orders.length === 0 && <p className="text-sm text-zinc-400">Заказов пока нет</p>}
-        <ul className="divide-y divide-zinc-100">
+        {orders.length === 0 && <p className="text-sm text-slate-400">Заказов пока нет</p>}
+        <ul className="divide-y divide-slate-100">
           {orders.map((o) => (
             <li key={o.id} className="flex items-center justify-between py-2 text-sm">
               <div>

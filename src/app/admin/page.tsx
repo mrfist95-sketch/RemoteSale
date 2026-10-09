@@ -31,10 +31,10 @@ export default async function AdminPage() {
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <Card title="Разделы управления">
-          <ul className="divide-y divide-zinc-100 text-sm">
+          <ul className="divide-y divide-slate-100 text-sm">
             {links.map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className="block py-2 font-medium text-zinc-800 hover:text-zinc-900">
+                <Link href={l.href} className="block py-2 font-medium text-slate-800 hover:text-slate-900">
                   {l.label} →
                 </Link>
               </li>
@@ -43,9 +43,9 @@ export default async function AdminPage() {
         </Card>
 
         <Card title="Заказы по статусам">
-          <ul className="divide-y divide-zinc-100 text-sm">
+          <ul className="divide-y divide-slate-100 text-sm">
             {stats.byStatus.length === 0 && (
-              <li className="py-2 text-zinc-400">Нет заказов</li>
+              <li className="py-2 text-slate-400">Нет заказов</li>
             )}
             {stats.byStatus.map((s) => (
               <li key={s.status} className="flex items-center justify-between py-2">

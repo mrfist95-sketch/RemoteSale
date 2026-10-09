@@ -20,7 +20,7 @@ export default async function CourierHome() {
     <div>
       <PageHeader title="Доставка" subtitle={`К доставке: ${orders.length}`} />
       <div className="space-y-3">
-        {orders.length === 0 && <p className="text-sm text-zinc-400">Нет заказов к доставке</p>}
+        {orders.length === 0 && <p className="text-sm text-slate-400">Нет заказов к доставке</p>}
         {orders.map((o) => (
           <Card key={o.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -34,19 +34,19 @@ export default async function CourierHome() {
             </div>
             <div className="mt-2 grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
               <div>
-                <span className="text-zinc-500">Получатель: </span>
+                <span className="text-slate-500">Получатель: </span>
                 {o.buyer.name ?? o.buyer.email}
               </div>
               <div>
-                <span className="text-zinc-500">Тел: </span>
+                <span className="text-slate-500">Тел: </span>
                 {o.buyer.phone ?? "—"}
               </div>
               <div className="sm:col-span-2">
-                <span className="text-zinc-500">Адрес: </span>
+                <span className="text-slate-500">Адрес: </span>
                 {o.buyer.address ?? "—"}
               </div>
               {o.buyer.comment && (
-                <div className="sm:col-span-2 text-xs text-zinc-500">
+                <div className="sm:col-span-2 text-xs text-slate-500">
                   Комментарий: {o.buyer.comment}
                 </div>
               )}
@@ -54,7 +54,7 @@ export default async function CourierHome() {
             <table className="mt-3 w-full text-sm">
               <tbody>
                 {o.items.map((i) => (
-                  <tr key={i.id} className="border-t border-zinc-100">
+                  <tr key={i.id} className="border-t border-slate-100">
                     <td className="py-1">{i.name}</td>
                     <td className="py-1 text-right">{i.qty}</td>
                     <td className="py-1 text-right font-medium">{formatRub(i.qty * i.price)}</td>
@@ -64,7 +64,7 @@ export default async function CourierHome() {
               <tfoot>
                 <tr>
                   <td />
-                  <td className="pt-2 text-right text-sm text-zinc-500">Итого</td>
+                  <td className="pt-2 text-right text-sm text-slate-500">Итого</td>
                   <td className="pt-2 text-right font-semibold">{formatRub(o.total)}</td>
                 </tr>
               </tfoot>

@@ -25,11 +25,11 @@ export default function AgentFilter({
 
   return (
     <div>
-      <label className="block text-xs text-zinc-500">Торговый представитель</label>
+      <label className="block text-xs text-slate-500">Торговый представитель</label>
       <select
         value={current}
         onChange={(e) => change(e.target.value)}
-        className="rounded border border-zinc-300 px-2 py-1 text-sm"
+        className="rounded border border-slate-300 px-2 py-1 text-sm"
       >
         <option value="">Все представители</option>
         {agents.map((a) => (

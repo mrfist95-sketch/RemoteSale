@@ -29,7 +29,7 @@ export const toast = {
 const STYLE: Record<Kind, string> = {
   success: "border-emerald-200 bg-emerald-50 text-emerald-900",
   error: "border-red-200 bg-red-50 text-red-900",
-  info: "border-brand-200 bg-white text-zinc-900",
+  info: "border-brand-200 bg-white text-slate-900",
 };
 
 export default function Toaster() {
