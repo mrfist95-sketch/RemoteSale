@@ -38,7 +38,7 @@ const NAV: Record<string, NavItem[]> = {
 
 function initials(name?: string | null, email?: string | null): string {
   const src = (name ?? email ?? "?").trim();
-  const parts = src.split(/[\s@._-]+/).filter(Boolean);
+  const parts = src.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
   return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
