@@ -36,6 +36,12 @@ const NAV: Record<string, NavItem[]> = {
   ],
 };
 
+function initials(name?: string | null, email?: string | null): string {
+  const src = (name ?? email ?? "?").trim();
+  const parts = src.split(/[\s@._-]+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
 export default function AppShell({
   user,
   children,
@@ -44,45 +50,44 @@ export default function AppShell({
   children: React.ReactNode;
 }) {
   const items = NAV[user.role] ?? [];
-  const mark = (
-    <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-700 text-sm font-bold text-white shadow-[0_6px_16px_-4px_rgb(66_100_236/0.7)]">
-      OS
-    </span>
-  );
-  const brand = (dark: boolean) => (
-    <div className="flex items-center gap-2.5">
-      {mark}
-      <div>
-        <div className={"text-base font-semibold leading-tight " + (dark ? "text-white" : "text-brand-900")}>OnSale</div>
-        <div className={"text-xs " + (dark ? "text-slate-400" : "text-slate-500")}>{ROLE_LABELS[user.role]}</div>
-      </div>
-    </div>
-  );
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
-      <aside className="hidden bg-gradient-to-b from-ink-800 to-ink-900 p-4 md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col">
-        <div className="mb-8 mt-1 px-1">{brand(true)}</div>
-        <nav className="flex flex-col gap-1" aria-label="Разделы">
-          <NavLinks items={items} />
-        </nav>
-        <div className="mt-auto pt-4 px-1">
-          <div className="mb-3 truncate rounded-lg bg-white/6 px-3 py-2 text-xs text-slate-300">{user.name ?? user.email}</div>
-          <LogoutButton variant="dark" />
-          <div className="mt-4 text-[11px] text-slate-500">© Галеро-РМ 2026</div>
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex flex-col gap-2 bg-white/80 px-4 py-3 shadow-[0_1px_0_rgb(14_24_56/0.06)] backdrop-blur-md md:hidden">
-          <div className="flex items-center justify-between">
-            {brand(false)}
+    <div className="min-h-full">
+      <header className="sticky top-0 z-40 bg-white shadow-bar">
+        <div className="flex h-14 items-center justify-between gap-3 px-3 md:px-4">
+          <div className="flex items-center gap-2">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-600 text-[15px] font-extrabold text-white">
+              OS
+            </span>
+            <span className="text-xl font-bold tracking-tight text-brand-600">OnSale</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <div className="hidden text-right leading-tight sm:block">
+              <div className="max-w-[16rem] truncate text-sm font-semibold text-slate-900">{user.name ?? user.email}</div>
+              <div className="text-xs text-slate-500">{ROLE_LABELS[user.role]}</div>
+            </div>
+            <span
+              className="grid h-10 w-10 place-items-center rounded-full bg-slate-200 text-sm font-bold text-slate-800"
+              title={ROLE_LABELS[user.role]}
+              aria-hidden
+            >
+              {initials(user.name, user.email)}
+            </span>
             <LogoutButton />
           </div>
-          <nav className="flex gap-1.5 overflow-x-auto pb-1" aria-label="Разделы">
-            <NavLinks items={items} mobile />
+        </div>
+        <nav className="flex overflow-x-auto border-t border-slate-200 px-1 md:hidden" aria-label="Разделы">
+          <NavLinks items={items} mobile />
+        </nav>
+      </header>
+
+      <div className="flex">
+        <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-72 shrink-0 overflow-y-auto p-2 md:block">
+          <nav className="flex flex-col gap-0.5" aria-label="Разделы">
+            <NavLinks items={items} />
           </nav>
-        </header>
-        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 md:p-8">{children}</main>
+          <div className="mt-6 px-3 text-[11px] text-slate-500">© Галеро-РМ 2026</div>
+        </aside>
+        <main className="mx-auto w-full min-w-0 max-w-[1400px] flex-1 p-3 md:p-5 md:pl-2">{children}</main>
       </div>
     </div>
   );
