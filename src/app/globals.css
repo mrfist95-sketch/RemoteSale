@@ -2,33 +2,39 @@
 
 /* Фирменная палитра (от themeColor #0b2545) и базовые токены */
 @theme {
-  /* Кобальт на ночном синем: живой акцент для действий, глубокий фон для навигации */
-  --color-brand-50: #eff3ff;
-  --color-brand-100: #dfe7ff;
-  --color-brand-200: #c0cfff;
-  --color-brand-300: #93abff;
-  --color-brand-400: #6483f7;
-  --color-brand-500: #4264ec;
-  --color-brand-600: #3350d9;
-  --color-brand-700: #2a42b3;
-  --color-brand-800: #233689;
-  --color-brand-900: #0e1838;
-  --color-ink-800: #141f45;
-  --color-ink-900: #0b1330;
-  --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
-  --shadow-soft: 0 1px 2px rgb(14 24 56 / 0.04), 0 4px 16px -4px rgb(14 24 56 / 0.08);
+  /* Синий как у Facebook: #0866ff для действий, нейтральные серые вместо холодных slate */
+  --color-brand-50: #e7f3ff;
+  --color-brand-100: #d0e6ff;
+  --color-brand-200: #a6cfff;
+  --color-brand-300: #75b3ff;
+  --color-brand-400: #3d8bff;
+  --color-brand-500: #1877f2;
+  --color-brand-600: #0866ff;
+  --color-brand-700: #0756d6;
+  --color-brand-800: #0a43a3;
+  --color-brand-900: #1c1e21;
+  --color-slate-50: #f7f8fa;
+  --color-slate-100: #f0f2f5;
+  --color-slate-200: #e4e6eb;
+  --color-slate-300: #ced0d4;
+  --color-slate-400: #a8abb2;
+  --color-slate-500: #65676b;
+  --color-slate-600: #4b4c4f;
+  --color-slate-700: #3a3b3c;
+  --color-slate-800: #1c1e21;
+  --color-slate-900: #050505;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.12);
+  --shadow-bar: 0 2px 4px rgb(0 0 0 / 0.1);
 }
 
 :root {
-  --background: #f2f4f9;
-  --foreground: #161b2e;
+  --background: #f0f2f5;
+  --foreground: #050505;
 }
 
 body {
-  background:
-    radial-gradient(1200px 500px at 85% -10%, rgb(66 100 236 / 0.07), transparent 60%),
-    var(--background);
-  background-attachment: fixed;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   font-feature-settings: "tnum" 1; /* цифры одинаковой ширины — суммы в таблицах ровнее */
@@ -37,19 +43,19 @@ body {
 /* Базовый вид форм и таблиц. Внутри @layer base — любой класс Tailwind его переопределит */
 @layer base {
   html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-  ::selection { background: var(--color-brand-200); color: var(--color-brand-900); }
-  h1, h2, h3 { letter-spacing: -0.015em; }
+  ::selection { background: var(--color-brand-100); color: var(--color-slate-900); }
+  
 
   input:not([type="checkbox"]):not([type="radio"]), select, textarea {
-    border-radius: 0.6rem;
-    border-color: #d5dae6;
+    border-radius: 0.5rem;
+    border-color: #ced0d4;
     background-color: #fff;
     transition: border-color .15s, box-shadow .15s;
   }
-  input:not([type="checkbox"]):not([type="radio"]):hover, select:hover, textarea:hover { border-color: #b8c0d4; }
+  input:not([type="checkbox"]):not([type="radio"]):hover, select:hover, textarea:hover { border-color: #a8abb2; }
   input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
     border-color: var(--color-brand-500);
-    box-shadow: 0 0 0 3px rgb(66 100 236 / 0.18);
+    box-shadow: 0 0 0 3px rgb(8 102 255 / 0.2);
     outline: none;
   }
   input[type="checkbox"], input[type="radio"] { accent-color: var(--color-brand-600); }
@@ -63,11 +69,11 @@ body {
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: #6b7390;
+    color: var(--color-slate-500);
     white-space: nowrap;
   }
   tbody tr { transition: background-color .12s; }
-  tbody tr:hover { background-color: rgb(66 100 236 / 0.035); }
+  tbody tr:hover { background-color: rgb(0 0 0 / 0.03); }
 }
 
 /* Заметный фокус для клавиатуры */
@@ -86,6 +92,6 @@ body {
 }
 
 @media print {
-  aside, header nav, [data-noprint] { display: none !important; }
+  aside, header, [data-noprint] { display: none !important; }
   body { background: #fff; }
 }
