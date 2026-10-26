@@ -40,7 +40,7 @@ export default async function CatalogPage() {
         <div className="mt-4">
           <Link
             href="/buyer/order/new"
-            className="inline-block rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white"
+            className="inline-block rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white"
           >
             Сформировать заказ
           </Link>

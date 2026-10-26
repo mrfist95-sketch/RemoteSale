@@ -132,7 +132,7 @@ export default async function SellerHome({
         </Suspense>
         <Link
           href="/seller/route-list"
-          className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+          className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
         >
           Маршрутный лист →
         </Link>
@@ -141,14 +141,14 @@ export default async function SellerHome({
       <SellerOrderBoard orders={serialized} open={open} total={total} editReasons={editReasons.map((r) => r.name)} />
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
-        <span className="text-zinc-500">
+        <span className="text-slate-500">
           Найдено по фильтру: {filteredTotal} · показаны {orders.length} · страница {page} из {totalPages}
         </span>
         <div className="flex items-center gap-2">
           {page > 1 && (
             <Link
               href={pageHref(page - 1)}
-              className="rounded border border-zinc-300 px-3 py-1.5 hover:bg-zinc-50"
+              className="rounded border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
             >
               ← Назад
             </Link>
@@ -156,7 +156,7 @@ export default async function SellerHome({
           {page < totalPages && (
             <Link
               href={pageHref(page + 1)}
-              className="rounded border border-zinc-300 px-3 py-1.5 hover:bg-zinc-50"
+              className="rounded border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
             >
               Вперёд →
             </Link>

@@ -37,6 +37,12 @@ const NAV: Record<string, NavItem[]> = {
   ],
 };
 
+function initials(name?: string | null, email?: string | null): string {
+  const src = (name ?? email ?? "?").trim();
+  const parts = src.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
 export default function AppShell({
   user,
   children,
@@ -45,40 +51,44 @@ export default function AppShell({
   children: React.ReactNode;
 }) {
   const items = NAV[user.role] ?? [];
-  const brand = (
-    <div className="flex items-center gap-2">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-900 text-sm font-bold text-white">OS</span>
-      <div>
-        <div className="text-base font-semibold leading-tight text-brand-900">OnSale</div>
-        <div className="text-xs text-zinc-500">{ROLE_LABELS[user.role]}</div>
-      </div>
-    </div>
-  );
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
-      <aside className="hidden border-r border-zinc-200 bg-white p-4 md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col">
-        <div className="mb-6">{brand}</div>
-        <nav className="flex flex-col gap-1" aria-label="Разделы">
-          <NavLinks items={items} />
+    <div className="min-h-full">
+      <header className="sticky top-0 z-40 bg-white shadow-bar">
+        <div className="flex h-14 items-center justify-between gap-3 px-3 md:px-4">
+          <div className="flex items-center gap-2">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-600 text-[15px] font-extrabold text-white">
+              OS
+            </span>
+            <span className="text-xl font-bold tracking-tight text-brand-600">OnSale</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <div className="hidden text-right leading-tight sm:block">
+              <div className="max-w-[16rem] truncate text-sm font-semibold text-slate-900">{user.name ?? user.email}</div>
+              <div className="text-xs text-slate-500">{ROLE_LABELS[user.role]}</div>
+            </div>
+            <span
+              className="grid h-10 w-10 place-items-center rounded-full bg-slate-200 text-sm font-bold text-slate-800"
+              title={ROLE_LABELS[user.role]}
+              aria-hidden
+            >
+              {initials(user.name, user.email)}
+            </span>
+            <LogoutButton />
+          </div>
+        </div>
+        <nav className="flex overflow-x-auto border-t border-slate-200 px-1 md:hidden" aria-label="Разделы">
+          <NavLinks items={items} mobile />
         </nav>
-        <div className="mt-auto pt-4 text-[11px] text-zinc-400">© Галеро-РМ 2026</div>
-      </aside>
+      </header>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex flex-col gap-2 border-b border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-end md:px-6">
-          <div className="flex items-center justify-between md:hidden">
-            {brand}
-            <LogoutButton />
-          </div>
-          <nav className="flex gap-1 overflow-x-auto pb-1 md:hidden" aria-label="Разделы">
-            <NavLinks items={items} mobile />
+      <div className="flex">
+        <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-72 shrink-0 overflow-y-auto p-2 md:block">
+          <nav className="flex flex-col gap-0.5" aria-label="Разделы">
+            <NavLinks items={items} />
           </nav>
-          <div className="hidden items-center gap-3 md:flex">
-            <span className="text-sm text-zinc-500">{user.name ?? user.email}</span>
-            <LogoutButton />
-          </div>
-        </header>
-        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 md:p-6">{children}</main>
+          <div className="mt-6 px-3 text-[11px] text-slate-500">© Галеро-РМ 2026</div>
+        </aside>
+        <main className="mx-auto w-full min-w-0 max-w-[1400px] flex-1 p-3 md:p-5 md:pl-2">{children}</main>
       </div>
     </div>
   );

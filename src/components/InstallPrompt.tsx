@@ -47,13 +47,13 @@ export default function InstallPrompt() {
   };
 
   return (
-    <div className="mt-4 rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-700">
+    <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
       <p className="mb-2 font-medium">Установите приложение OnSale:</p>
       {deferred ? (
         <button
           type="button"
           onClick={install}
-          className="rounded-md bg-brand-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
+          className="rounded-lg bg-brand-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
         >
           Установить приложение
         </button>

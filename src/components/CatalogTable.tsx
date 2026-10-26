@@ -82,13 +82,13 @@ export default function CatalogTable({ products }: { products: Row[] }) {
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center gap-3 rounded border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm">
-        <label className="text-xs text-zinc-500">
+      <div className="mb-3 flex flex-wrap items-center gap-3 rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+        <label className="text-xs text-slate-500">
           Категория
           <select
             value={filterCat}
             onChange={(e) => setFilterCat(e.target.value)}
-            className="ml-2 rounded border border-zinc-300 px-1 py-1 text-sm"
+            className="ml-2 rounded border border-slate-300 px-1 py-1 text-sm"
           >
             <option value="">все</option>
             {categories.map((c) => (
@@ -98,12 +98,12 @@ export default function CatalogTable({ products }: { products: Row[] }) {
             ))}
           </select>
         </label>
-        <label className="text-xs text-zinc-500">
+        <label className="text-xs text-slate-500">
           Производитель
           <select
             value={filterManu}
             onChange={(e) => setFilterManu(e.target.value)}
-            className="ml-2 rounded border border-zinc-300 px-1 py-1 text-sm"
+            className="ml-2 rounded border border-slate-300 px-1 py-1 text-sm"
           >
             <option value="">все</option>
             {manufacturers.map((m) => (
@@ -118,26 +118,26 @@ export default function CatalogTable({ products }: { products: Row[] }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Поиск: название / производитель"
-          className="ml-auto w-full max-w-64 rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="ml-auto w-full max-w-64 rounded border border-slate-300 px-2 py-1 text-sm"
         />
-        <span className="text-xs text-zinc-400">
+        <span className="text-xs text-slate-400">
           Сортировка — кликом по заголовку колонки
         </span>
       </div>
 
       {/* Мобильный: карточки */}
       <div className="md:hidden">
-        {visible.length === 0 && <p className="py-4 text-center text-sm text-zinc-400">Ничего не найдено</p>}
-        <div className="overflow-hidden rounded-lg border border-zinc-200">
+        {visible.length === 0 && <p className="py-4 text-center text-sm text-slate-400">Ничего не найдено</p>}
+        <div className="overflow-hidden rounded-lg border border-slate-200">
           {visible.map((p) => (
-            <div key={p.id} className="border-t border-zinc-100 px-3 py-2 first:border-t-0">
+            <div key={p.id} className="border-t border-slate-100 px-3 py-2 first:border-t-0">
               <div className="font-medium">{p.name}</div>
-              <div className="mt-0.5 text-xs text-zinc-500">
+              <div className="mt-0.5 text-xs text-slate-500">
                 {[p.categoryName, p.manufacturer].filter(Boolean).join(" · ") || "—"}
               </div>
               <div className="mt-1 flex items-center justify-between gap-2 text-sm">
                 <span className="font-semibold">{formatRub(p.price)}</span>
-                <span className="shrink-0 text-xs text-zinc-400">
+                <span className="shrink-0 text-xs text-slate-400">
                   {p.unit} · скл.: {p.stock}
                 </span>
               </div>
@@ -149,19 +149,19 @@ export default function CatalogTable({ products }: { products: Row[] }) {
       {/* Десктоп: таблица */}
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
-          <thead className="text-left text-zinc-500">
+          <thead className="text-left text-slate-500">
             <tr>
-              <th className="cursor-pointer select-none py-2 hover:text-zinc-800" onClick={() => headerClick("name")}>
+              <th className="cursor-pointer select-none py-2 hover:text-slate-800" onClick={() => headerClick("name")}>
                 Наименование{indicator("name")}
               </th>
-              <th className="cursor-pointer select-none py-2 hover:text-zinc-800" onClick={() => headerClick("category")}>
+              <th className="cursor-pointer select-none py-2 hover:text-slate-800" onClick={() => headerClick("category")}>
                 Категория{indicator("category")}
               </th>
-              <th className="cursor-pointer select-none py-2 hover:text-zinc-800" onClick={() => headerClick("manufacturer")}>
+              <th className="cursor-pointer select-none py-2 hover:text-slate-800" onClick={() => headerClick("manufacturer")}>
                 Производитель{indicator("manufacturer")}
               </th>
               <th className="py-2">Ед.</th>
-              <th className="cursor-pointer select-none py-2 hover:text-zinc-800" onClick={() => headerClick("price")}>
+              <th className="cursor-pointer select-none py-2 hover:text-slate-800" onClick={() => headerClick("price")}>
                 Цена{indicator("price")}
               </th>
               <th className="py-2">Остаток</th>
@@ -170,16 +170,16 @@ export default function CatalogTable({ products }: { products: Row[] }) {
           <tbody>
             {visible.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-4 text-center text-sm text-zinc-400">
+                <td colSpan={6} className="py-4 text-center text-sm text-slate-400">
                   Ничего не найдено
                 </td>
               </tr>
             )}
             {visible.map((p) => (
-              <tr key={p.id} className="border-t border-zinc-100">
+              <tr key={p.id} className="border-t border-slate-100">
                 <td className="py-2">{p.name}</td>
-                <td className="py-2 text-zinc-500">{p.categoryName ?? "—"}</td>
-                <td className="py-2 text-zinc-600">{p.manufacturer ?? "—"}</td>
+                <td className="py-2 text-slate-500">{p.categoryName ?? "—"}</td>
+                <td className="py-2 text-slate-600">{p.manufacturer ?? "—"}</td>
                 <td className="py-2">{p.unit}</td>
                 <td className="py-2">{formatRub(p.price)}</td>
                 <td className="py-2">{p.stock}</td>

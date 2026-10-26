@@ -5,6 +5,7 @@ services:
       args:
         NEXT_PUBLIC_DEMO: "true"
     container_name: onsale-demo
+    restart: unless-stopped
     ports:
       - "127.0.0.1:3001:3000"
     environment:
@@ -16,6 +17,11 @@ services:
       DEMO_PASSWORD: "${DEMO_PASSWORD:-demo1234}"
     volumes:
       - app-demo-data:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   app-demo-data:

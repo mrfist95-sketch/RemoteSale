@@ -7,7 +7,7 @@ node scripts/db-migrate.mjs
 
 # Seed:
 #  - demo-режим (NEXT_PUBLIC_DEMO=true): демо-пользователи + подсказки
-#  - обычный режим: только администратор из ADMIN_EMAIL/ADMIN_PASSWORD
+#  - обычный режим: только администратор из ADMIN_EMAIL/ADMIN_PASSWORD (идемпотентно)
 if [ "$NEXT_PUBLIC_DEMO" = "true" ]; then
   npx tsx prisma/seed-demo.ts
 else
