@@ -13,7 +13,7 @@ async function main() {
     }
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+  const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminPassword || adminPassword.length < 8) {

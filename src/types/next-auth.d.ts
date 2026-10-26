@@ -9,11 +9,14 @@ declare module "next-auth" {
   }
   interface User {
     role?: string;
+    sv?: number;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     role?: string;
+    sv?: number;
+    revoked?: boolean;
   }
 }

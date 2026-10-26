@@ -6,7 +6,8 @@ export * from "@/lib/rbac-core";
 
 export async function getSessionUser() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return null;
+  // Отозванная сессия (пользователь удалён/заблокирован/сменил пароль) приходит без user
+  if (!session?.user?.id) return null;
   return session.user as { id: string; email?: string; name?: string; role: string };
 }
 

@@ -1,0 +1,8 @@
+# Скрипты и Docker-файлы — всегда LF (CRLF ломает /bin/sh в контейнере)
+* text=auto eol=lf
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.png binary
+*.ico binary
+*.pdf binary
+*.db binary

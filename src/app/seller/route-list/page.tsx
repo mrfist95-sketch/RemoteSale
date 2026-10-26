@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatRub } from "@/lib/format";
 import { PageHeader } from "@/components/ui";
 import PrintButton from "@/components/PrintButton";
+import { formatDate } from "@/lib/format";
 
 export default async function RouteListPage() {
   await requireRole("SELLER");
@@ -23,7 +24,7 @@ export default async function RouteListPage() {
       </div>
 
       <div className="hidden print:block">
-        <h1 className="text-lg font-bold">Маршрутный лист — {new Date().toLocaleDateString("ru-RU")}</h1>
+        <h1 className="text-lg font-bold">Маршрутный лист — {formatDate(new Date())}</h1>
       </div>
 
       {orders.length === 0 && <p className="text-sm text-zinc-400">Нет заказов к передаче</p>}

@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { bulkChangeStatus, editOrderItems } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
+import { toast } from "@/components/Toaster";
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, PAYABLE_STATUSES } from "@/lib/rbac";
 import { formatRub, formatDateTime } from "@/lib/format";
-import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import StatusHistory from "@/components/StatusHistory";
 import OrderPaymentsPanel, { type PaymentRow, type AuditRow } from "@/components/OrderPaymentsPanel";
+import { dayKey } from "@/lib/tz";
 
 export interface SellerOrderItem {
   id: string;
@@ -53,7 +55,7 @@ export default function SellerOrderBoard({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState("ENTERED");
   const [busy, setBusy] = useState(false);
-  const todayISO = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD локально
+  const todayISO = dayKey(new Date()); // YYYY-MM-DD в поясе бизнеса
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -66,18 +68,20 @@ export default function SellerOrderBoard({
 
   async function applyBulk() {
     if (selected.size === 0) {
-      alert("Выберите хотя бы один заказ");
+      toast.info("Выберите хотя бы один заказ");
       return;
     }
     if (!confirm(`Сменить статус на «${ORDER_STATUS_LABELS[bulkStatus]}» для ${selected.size} заказ(ов)?`))
       return;
     setBusy(true);
     try {
-      await bulkChangeStatus(Array.from(selected), bulkStatus);
+      const res = unwrap(await bulkChangeStatus(Array.from(selected), bulkStatus));
       setSelected(new Set());
+      if (res.changed) toast.success(`Статус изменён у ${res.changed} заказ(ов)`);
+      if (res.skipped.length) toast.error(`Пропущено ${res.skipped.length}: ${res.skipped.join("; ")}`);
       router.refresh();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Ошибка");
+      toast.fromError(e);
     } finally {
       setBusy(false);
     }
@@ -94,7 +98,7 @@ export default function SellerOrderBoard({
           onChange={(e) => setBulkStatus(e.target.value)}
           className="rounded border border-zinc-300 px-2 py-1 text-sm"
         >
-          {ORDER_STATUSES.map((s) => (
+          {ORDER_STATUSES.filter((s) => s !== "NEW").map((s) => (
             <option key={s} value={s}>
               {ORDER_STATUS_LABELS[s]}
             </option>
@@ -103,7 +107,7 @@ export default function SellerOrderBoard({
         <button
           onClick={applyBulk}
           disabled={busy}
-          className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           Применить
         </button>
@@ -129,7 +133,7 @@ export default function SellerOrderBoard({
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-semibold">{formatRub(o.total)}</span>
-                <StatusSelect orderId={o.id} current={o.status} role="SELLER" />
+                <StatusSelect orderId={o.id} current={o.status} role="SELLER" paid={o.paid} total={o.total} />
               </div>
             </div>
 
@@ -192,11 +196,11 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
     setBusy(true);
     setError(null);
     try {
-      const res = await editOrderItems({
+      const res = unwrap(await editOrderItems({
         orderId: order.id,
         items: order.items.map((i) => ({ orderItemId: i.id, qty: qtys[i.id] ?? i.qty })),
         reason: finalReason,
-      });
+      }));
       setEditing(false);
       setMsg(`Состав скорректирован. Новый итог: ${res.total.toFixed(2)} ₽`);
       router.refresh();
@@ -273,7 +277,7 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
               placeholder={reasons.length > 0 ? "или своя причина" : "причина (например: Нет на складе)"}
               className="w-56 rounded border border-zinc-300 px-2 py-0.5"
             />
-            <button onClick={save} disabled={busy} className="rounded bg-zinc-900 px-3 py-1 text-white disabled:opacity-50">
+            <button onClick={save} disabled={busy} className="rounded bg-brand-700 px-3 py-1 text-white disabled:opacity-50">
               {busy ? "…" : "Сохранить"}
             </button>
             <button onClick={() => { setEditing(false); setError(null); }} className="text-zinc-500 hover:underline">отмена</button>

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateUser, deleteUser } from "@/app/actions";
+import { updateUser, deleteUser, setUserBlocked } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
+import { toast } from "@/components/Toaster";
 import { ROLE_LABELS } from "@/lib/rbac";
 import { generatePassword } from "@/lib/password";
 
@@ -22,6 +24,7 @@ export default function UserRow({
     phone: string | null;
     comment: string | null;
     deferral: number;
+    blocked: boolean;
   };
   agents: { id: string; name: string | null; email: string }[];
 }) {
@@ -72,9 +75,15 @@ export default function UserRow({
         data.deferral = Number(deferral) || 0;
       }
       if (password) data.password = password;
-      await updateUser(user.id, data);
+      unwrap(await updateUser(user.id, data));
+      if (password) toast.success("Пароль изменён — старые сессии пользователя завершены");
+      else toast.success("Сохранено");
       setPassword("");
+      setGenerated(null);
       router.refresh();
+    } catch (e) {
+      setRole(user.role);
+      toast.fromError(e);
     } finally {
       setBusy(false);
     }
@@ -84,15 +93,33 @@ export default function UserRow({
     if (!confirm(`Удалить пользователя ${user.email}?`)) return;
     setBusy(true);
     try {
-      await deleteUser(user.id);
+      unwrap(await deleteUser(user.id));
+      toast.success("Пользователь удалён");
       router.refresh();
+    } catch (e) {
+      toast.fromError(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleBlocked() {
+    const next = !user.blocked;
+    if (next && !confirm(`Заблокировать ${user.email}? Вход будет запрещён, активные сессии завершатся.`)) return;
+    setBusy(true);
+    try {
+      unwrap(await setUserBlocked(user.id, next));
+      toast.success(next ? "Пользователь заблокирован" : "Пользователь разблокирован");
+      router.refresh();
+    } catch (e) {
+      toast.fromError(e);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <tr className="border-t border-zinc-100 align-top">
+    <tr className={`border-t border-zinc-100 align-top ${user.blocked ? "bg-zinc-50 opacity-70" : ""}`}>
       <td className="py-2 pr-3">
         <input
           value={name}
@@ -105,6 +132,11 @@ export default function UserRow({
           className="w-40 rounded border border-zinc-300 px-2 py-1 text-sm"
         />
         <div className="text-xs text-zinc-400">{user.email}</div>
+        {user.blocked && (
+          <span className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">
+            заблокирован
+          </span>
+        )}
       </td>
       <td className="py-2 pr-3">
         <select
@@ -206,16 +238,21 @@ export default function UserRow({
           <button
             onClick={save}
             disabled={busy}
-            className="rounded bg-zinc-900 px-2 py-1 text-white disabled:opacity-50"
+            className="rounded bg-brand-700 px-2 py-1 text-white disabled:opacity-50"
           >
             Сохранить
           </button>
         </div>
       </td>
       <td className="py-2 text-right">
-        <button onClick={remove} disabled={busy} className="text-xs text-red-600 hover:underline">
-          Удалить
-        </button>
+        <div className="flex flex-col items-end gap-1">
+          <button onClick={toggleBlocked} disabled={busy} className="text-xs text-zinc-600 hover:underline disabled:opacity-50">
+            {user.blocked ? "Разблокировать" : "Заблокировать"}
+          </button>
+          <button onClick={remove} disabled={busy} className="text-xs text-red-600 hover:underline disabled:opacity-50">
+            Удалить
+          </button>
+        </div>
       </td>
     </tr>
   );

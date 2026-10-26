@@ -36,3 +36,6 @@ Thumbs.db
 # Prisma dev-база
 prisma/*.db
 prisma/*.db-*
+
+# Резервные копии баз
+backups/

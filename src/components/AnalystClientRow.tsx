@@ -37,7 +37,7 @@ export function ClientExpandableRow({ c }: { c: ClientRowView }) {
           <button
             type="button"
             onClick={() => setOpen(!open)}
-            className="flex items-start gap-1 text-left font-medium hover:text-indigo-600"
+            className="flex items-start gap-1 text-left font-medium hover:text-brand-600"
           >
             <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
             <span>
@@ -72,7 +72,7 @@ export function ClientExpandableRow({ c }: { c: ClientRowView }) {
                   <button
                     type="button"
                     onClick={() => setOpenOrder(openOrder === o.orderId ? null : o.orderId)}
-                    className="flex items-center gap-1 text-left hover:text-indigo-600"
+                    className="flex items-center gap-1 text-left hover:text-brand-600"
                   >
                     <span className="w-3 text-zinc-400">{openOrder === o.orderId ? "▼" : "▶"}</span>
                     <span className="font-medium">№{o.number}</span>

@@ -37,7 +37,7 @@ export default function ProductExpandableRow({ p }: { p: ProductRowView }) {
           <button
             type="button"
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-1 text-left font-medium hover:text-indigo-600"
+            className="flex items-center gap-1 text-left font-medium hover:text-brand-600"
           >
             <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
             <span>

@@ -35,7 +35,7 @@ export function AgentLeaderboardRow({
           <button
             type="button"
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-1 text-left font-medium hover:text-indigo-600"
+            className="flex items-center gap-1 text-left font-medium hover:text-brand-600"
           >
             <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
             {row.agentName}
@@ -107,7 +107,7 @@ export function ProductLeaderboardRow({
           <button
             type="button"
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-1 text-left font-medium hover:text-indigo-600"
+            className="flex items-center gap-1 text-left font-medium hover:text-brand-600"
           >
             <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
             {row.productName}

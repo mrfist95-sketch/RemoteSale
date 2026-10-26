@@ -1,5 +1,7 @@
 "use client";
 
+import { unwrap, type ActionResult } from "@/lib/action-result";
+import { toast } from "@/components/Toaster";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatRub } from "@/lib/format";
@@ -45,9 +47,12 @@ function ProductRow({
         <input
           type="number"
           min={0}
+          step={1}
           inputMode="numeric"
           value={qty[p.id] || ""}
-          onChange={(e) => setQty((q) => ({ ...q, [p.id]: Number(e.target.value) }))}
+          onChange={(e) =>
+            setQty((q) => ({ ...q, [p.id]: Math.max(0, Math.floor(Number(e.target.value) || 0)) }))
+          }
           className="w-full rounded border border-zinc-300 px-2 py-1"
           placeholder="0"
           aria-label={`Количество: ${p.name}`}
@@ -61,10 +66,13 @@ export default function CreateOrderForm({
   products,
   buyerId,
   action,
+  redirectTo = "/buyer/orders",
 }: {
   products: Product[];
   buyerId: string;
-  action: (buyerId: string, items: { productId: string; qty: number }[], note?: string) => Promise<{ ok: boolean }>;
+  action: (buyerId: string, items: { productId: string; qty: number }[], note?: string) => Promise<ActionResult<{ number: number }>>;
+  /** Куда перейти после оформления (агент → заказы клиентов) */
+  redirectTo?: string;
 }) {
   const router = useRouter();
   const [qty, setQty] = useState<Record<string, number>>({});
@@ -153,8 +161,9 @@ export default function CreateOrderForm({
     }
     setLoading(true);
     try {
-      await action(buyerId, items, note || undefined);
-      router.push("/buyer/orders");
+      const res = unwrap(await action(buyerId, items, note || undefined));
+      toast.success(`Заказ №${res.number} сохранён как черновик`);
+      router.push(redirectTo);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
@@ -275,7 +284,7 @@ export default function CreateOrderForm({
         <button
           onClick={submit}
           disabled={loading}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-white font-medium disabled:opacity-50"
+          className="rounded-md bg-brand-700 px-4 py-2 text-white font-medium disabled:opacity-50"
         >
           {loading ? "Создание…" : "Оформить заказ"}
         </button>

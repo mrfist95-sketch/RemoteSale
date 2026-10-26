@@ -1,8 +1,11 @@
 services:
   app:
     build: .
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      # Только локально: снаружи приложение доступно через nginx (HTTPS).
+      # Для доступа по локальной сети без nginx замените на "3000:3000".
+      - "127.0.0.1:3000:3000"
     environment:
       DATABASE_URL: "file:/app/data/prod.db"
       NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000}"
@@ -12,6 +15,11 @@ services:
       ADMIN_PASSWORD: "${ADMIN_PASSWORD:?Задайте ADMIN_PASSWORD в .env}"
     volumes:
       - app-data:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   app-data:

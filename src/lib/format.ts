@@ -1,22 +1,18 @@
+import { APP_TIME_ZONE } from "@/lib/tz";
+
+const rub = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 2 });
+const date = new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeZone: APP_TIME_ZONE });
+const dateTime = new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeStyle: "short", timeZone: APP_TIME_ZONE });
+
 export function formatRub(value: number): string {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    maximumFractionDigits: 2,
-  }).format(value || 0);
+  return rub.format(value || 0);
 }
 
+// Даты всегда в поясе бизнеса: одинаково на сервере (UTC в Docker) и в браузере
 export function formatDate(value: Date | string): string {
-  const d = typeof value === "string" ? new Date(value) : value;
-  return new Intl.DateTimeFormat("ru-RU", {
-    dateStyle: "medium",
-  }).format(d);
+  return date.format(typeof value === "string" ? new Date(value) : value);
 }
 
 export function formatDateTime(value: Date | string): string {
-  const d = typeof value === "string" ? new Date(value) : value;
-  return new Intl.DateTimeFormat("ru-RU", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(d);
+  return dateTime.format(typeof value === "string" ? new Date(value) : value);
 }

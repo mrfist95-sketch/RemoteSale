@@ -5,11 +5,8 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  {
-    // HSTS активируется при обслуживании по HTTPS (в Docker за reverse-proxy)
-    key: "Strict-Transport-Security",
-    value: "max-age=31536000; includeSubDomains",
-  },
+  // HSTS здесь не выставляем: приложение может работать и по HTTP (локальная сеть),
+  // а за HTTPS заголовок добавляет nginx.
   {
     // Разрешаем inline-стили (Tailwind использует их) и 'unsafe-eval' только в dev.
     key: "Content-Security-Policy",

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPayment, correctPayment, deletePayment } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
 import { formatRub } from "@/lib/format";
+import { dayKey } from "@/lib/tz";
 
 export interface PaymentRow {
   id: string;
@@ -90,7 +92,7 @@ export default function OrderPaymentsPanel({
     }
     setLoading(true);
     try {
-      await createPayment({ buyerId, orderId, amount: val, method });
+      unwrap(await createPayment({ buyerId, orderId, amount: val, method }));
       setMsg(`Оплата ${val.toFixed(2)} ₽ принята` + (val >= debt - 0.009 ? ". Заказ переведён в «Оплачен»." : ""));
       setAmount("");
       router.refresh();
@@ -111,7 +113,7 @@ export default function OrderPaymentsPanel({
   async function saveEdit(id: string) {
     setError(null);
     try {
-      await correctPayment({ paymentId: id, amount: Number(editAmount), method: editMethod, reason: editReason });
+      unwrap(await correctPayment({ paymentId: id, amount: Number(editAmount), method: editMethod, reason: editReason }));
       setEditing(null);
       setMsg("Оплата скорректирована");
       router.refresh();
@@ -125,7 +127,7 @@ export default function OrderPaymentsPanel({
     if (!reason || reason.trim().length < 3) return;
     setError(null);
     try {
-      await deletePayment(id, reason);
+      unwrap(await deletePayment(id, reason));
       setMsg("Оплата удалена");
       router.refresh();
     } catch (err) {
@@ -194,7 +196,7 @@ export default function OrderPaymentsPanel({
           <p className="text-xs font-medium text-zinc-500">Оплаты по заказу:</p>
           <ul className="mt-1 space-y-1">
             {payments.map((p) => {
-              const sameDay = p.date.slice(0, 10) === todayISO;
+              const sameDay = dayKey(new Date(p.date)) === todayISO;
               const canCorrect = isAdmin || sameDay;
               return (
                 <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-zinc-100 bg-zinc-50 px-2 py-1 text-xs">
@@ -223,7 +225,7 @@ export default function OrderPaymentsPanel({
                           placeholder="причина"
                           className="w-36 rounded border border-zinc-300 px-1 py-0.5"
                         />
-                        <button onClick={() => saveEdit(p.id)} className="rounded bg-zinc-900 px-2 py-0.5 text-white">Сохранить</button>
+                        <button onClick={() => saveEdit(p.id)} className="rounded bg-brand-700 px-2 py-0.5 text-white">Сохранить</button>
                         <button onClick={() => setEditing(null)} className="text-zinc-400 hover:underline">отмена</button>
                       </span>
                     ) : (

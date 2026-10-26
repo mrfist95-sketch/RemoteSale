@@ -1,8 +1,9 @@
 #!/bin/sh
 set -e
 
-# Apply schema to the database (works for both SQLite and Postgres via DATABASE_URL)
-npx prisma db push
+# Обновление схемы БД: резервная копия + baseline + `prisma migrate deploy`.
+# Никогда не удаляет данные; при ошибке миграции контейнер не стартует.
+node scripts/db-migrate.mjs
 
 # Seed:
 #  - demo-режим (NEXT_PUBLIC_DEMO=true): демо-пользователи + подсказки

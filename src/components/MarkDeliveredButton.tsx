@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { changeOrderStatus } from "@/app/actions";
+import { unwrap } from "@/lib/action-result";
+import { toast } from "@/components/Toaster";
 
 export default function MarkDeliveredButton({ orderId }: { orderId: string }) {
   const router = useRouter();
@@ -11,8 +13,11 @@ export default function MarkDeliveredButton({ orderId }: { orderId: string }) {
     if (!confirm("Отметить заказ как доставленный?")) return;
     setBusy(true);
     try {
-      await changeOrderStatus(orderId, "DELIVERED");
+      unwrap(await changeOrderStatus(orderId, "DELIVERED"));
+      toast.success("Доставка отмечена");
       router.refresh();
+    } catch (e) {
+      toast.fromError(e);
     } finally {
       setBusy(false);
     }
@@ -21,7 +26,7 @@ export default function MarkDeliveredButton({ orderId }: { orderId: string }) {
     <button
       onClick={onClick}
       disabled={busy}
-      className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+      className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
     >
       {busy ? "…" : "Отметить доставку"}
     </button>

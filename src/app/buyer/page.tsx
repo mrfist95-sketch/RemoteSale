@@ -32,7 +32,7 @@ export default async function BuyerHome() {
       <Card
         title="Последние заказы"
         action={
-          <Link href="/buyer/catalog" className="text-sm text-indigo-600 hover:underline">
+          <Link href="/buyer/catalog" className="text-sm text-brand-600 hover:underline">
             Сформировать заказ →
           </Link>
         }

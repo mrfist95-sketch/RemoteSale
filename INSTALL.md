@@ -119,7 +119,7 @@ docker compose up -d --build
 ```bash
 npm ci
 cp .env.example .env        # заполнить как в таблице выше; DATABASE_URL="file:./dev.db"
-npx prisma db push          # создать/обновить схему БД
+npm run db:migrate          # создать/обновить схему БД (резервная копия + prisma migrate deploy)
 npm run seed                # создать администратора из ADMIN_EMAIL/ADMIN_PASSWORD
 npm run build
 npm start                   # http://0.0.0.0:3000
@@ -151,11 +151,13 @@ docker compose up -d
 
 - Приложение слушает порт 3000 по HTTP. Для HTTPS поставьте reverse-proxy (nginx, Traefik, Caddy) и проксируйте на `localhost:3000`; в `NEXTAUTH_URL` укажите публичный `https://...` адрес.
 - PWA-установка (Add to Home Screen) и service worker требуют **HTTPS** (или localhost).
-- `docker-entrypoint.sh` при каждом старте выполняет `prisma db push` (миграции) и seed (идемпотентно: если админ уже есть — ничего не меняет).
+- `docker-entrypoint.sh` при каждом старте: делает копию базы в `/app/data/backups/pre-migrate-*.db` (10 последних), применяет недостающие миграции (`prisma migrate deploy` — данные не удаляются; при ошибке приложение не стартует, а копия остаётся) и выполняет seed (идемпотентно).
+- Изменение схемы: поправьте `prisma/schema.prisma`, создайте миграцию `npx prisma migrate dev --name <что-изменилось>` на dev-базе, проверьте SQL в `prisma/migrations/*/migration.sql` и закоммитьте. `prisma db push` для боевой базы не используйте.
+- Порт приложения в `docker-compose.yml` привязан к `127.0.0.1` — снаружи доступ только через reverse-proxy. Для доступа по локальной сети без прокси замените на `"3000:3000"`.
 - Watchdog перезапускает приложение при падении; Docker HEALTHCHECK следит за `/api/health` и виден в `docker compose ps`.
 
 ## Безопасность — кратко
 
-- Пароли хранятся только как bcrypt-хэши; вход ограничен rate limit'ом (4 попытки, далее блок 30с → 1м → 2м… до 1ч).
+- Пароли хранятся только как bcrypt-хэши; вход ограничен rate limit'ом: 3 неудачи на email или 20 с одного IP — блок 30с → 1м → 2м… до 1ч. Роль и блокировка проверяются по базе при каждом запросе.
 - В `.env` реальные секреты; файл исключён из git и дистрибутива.
 - Демо-данных в дистрибутиве нет: чистая база содержит только администратора.

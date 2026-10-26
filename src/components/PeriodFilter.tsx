@@ -43,7 +43,7 @@ export default function PeriodFilter() {
           className="rounded border border-zinc-300 px-2 py-1 text-sm"
         />
       </div>
-      <button type="submit" className="rounded bg-zinc-900 px-3 py-1.5 text-sm text-white">
+      <button type="submit" className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white">
         Применить
       </button>
       <button type="button" onClick={reset} className="text-sm text-zinc-500 hover:underline">
