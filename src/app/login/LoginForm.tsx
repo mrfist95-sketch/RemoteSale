@@ -58,7 +58,31 @@ export default function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      const res = await signIn("credentials", { email, password, redirect: false });
+      // Клиентская телеметрия устройства (для журнала входов администратора)
+      const nav = navigator as Navigator & {
+        deviceMemory?: number;
+        platform?: string;
+      };
+      const telemetry: Record<string, string> = {};
+      try {
+        telemetry.screen = `${screen.width}x${screen.height}`;
+        telemetry.viewport = `${window.innerWidth}x${window.innerHeight}`;
+        telemetry.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+        telemetry.platform = nav.platform ?? "";
+        telemetry.hardware = `${nav.hardwareConcurrency ?? "?"} ядер, ${
+          nav.deviceMemory ?? "?"
+        } ГБ`;
+        telemetry.touch = String(nav.maxTouchPoints > 0);
+        telemetry.cookies = String(nav.cookieEnabled);
+      } catch {
+        /* телеметрия не критична */
+      }
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        ...telemetry,
+      });
       setLoading(false);
       if (!res || res.error) {
         // Статус лимита сразу после неудачи: блокировка началась сейчас или остались попытки

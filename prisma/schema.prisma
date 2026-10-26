@@ -34,6 +34,7 @@ model User {
   auditLogs   OrderAuditLog[]  @relation("OrderAuditAuthor")
   paymentLogs Payment[]  @relation("PaymentAuthor")
   audit       AuditLog[] @relation("AuditAuthor")
+  loginEvents LoginEvent[] @relation("LoginEvents")
 }
 
 model PriceList {
@@ -184,4 +185,36 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([createdAt])
+}
+
+// Журнал входов: телеметрия устройств (IP, браузер, ОС, экран, часовой пояс...)
+model LoginEvent {
+  id             String   @id @default(cuid())
+  userId         String?
+  user           User?    @relation("LoginEvents", fields: [userId], references: [id], onDelete: SetNull)
+  email          String   // какой логин вводили
+  success        Boolean
+  reason         String?  // причина неудачи: неверный пароль, блокировка, лимит попыток
+  ip             String?
+  userAgent      String?  // полный User-Agent
+  browser        String?
+  browserVersion String?
+  os             String?
+  deviceType     String?  // desktop | mobile | tablet
+  language       String?  // Accept-Language
+  referrer       String?
+  // Клиентская телеметрия (из браузера при входе)
+  screen         String?  // 1920x1080
+  viewport       String?
+  timezone       String?
+  platform       String?  // Windows, MacIntel, Win32, iPhone ...
+  hardware       String?  // ядра CPU, ГБ памяти
+  touch          Boolean?
+  cookiesEnabled Boolean?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([email])
+  @@index([ip])
 }

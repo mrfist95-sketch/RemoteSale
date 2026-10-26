@@ -33,6 +33,7 @@ const NAV: Record<string, NavItem[]> = {
     { href: "/admin/users", label: "Пользователи" },
     { href: "/admin/price-list", label: "Прайс-лист" },
     { href: "/admin/orders", label: "Все заказы" },
+    { href: "/admin/login-log", label: "Журнал входов" },
   ],
 };
 
