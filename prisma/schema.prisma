@@ -196,6 +196,7 @@ model LoginEvent {
   success        Boolean
   reason         String?  // причина неудачи: неверный пароль, блокировка, лимит попыток
   ip             String?
+  forwardedFor   String?  // полная цепочка X-Forwarded-For (виден «внутренний» адрес за NAT)
   userAgent      String?  // полный User-Agent
   browser        String?
   browserVersion String?
