@@ -56,7 +56,7 @@ export default async function BuyerPaymentsPage() {
         <Card title="Долг по заказам" className="mb-4">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-zinc-500">
+              <thead className="text-left text-slate-500">
                 <tr>
                   <th className="py-2">Заказ</th>
                   <th className="py-2">Статус</th>
@@ -67,9 +67,9 @@ export default async function BuyerPaymentsPage() {
               </thead>
               <tbody>
                 {withDebt.map((o) => (
-                  <tr key={o.id} className="border-t border-zinc-100">
+                  <tr key={o.id} className="border-t border-slate-100">
                     <td className="py-2 font-medium">№{o.number}</td>
-                    <td className="py-2 text-zinc-500">
+                    <td className="py-2 text-slate-500">
                       {o.status === "SHIPPED" ? "Отгружен" : o.status === "DELIVERED" ? "Доставлен" : "Оплачен (есть остаток)"}
                     </td>
                     <td className="py-2 text-right">{formatRub(o.total)}</td>
@@ -84,13 +84,13 @@ export default async function BuyerPaymentsPage() {
       )}
 
       <Card title="История оплат">
-        {payments.length === 0 && <p className="text-sm text-zinc-400">Оплат пока нет</p>}
-        <ul className="divide-y divide-zinc-100">
+        {payments.length === 0 && <p className="text-sm text-slate-400">Оплат пока нет</p>}
+        <ul className="divide-y divide-slate-100">
           {payments.map((p) => (
             <li key={p.id} className="flex items-center justify-between py-2 text-sm">
               <div>
                 {formatDate(p.date)} · {p.method === "card" ? "Карта" : p.method === "cash" ? "Наличные" : "Счёт"}
-                {p.order && <span className="text-zinc-500"> · заказ №{p.order.number}</span>}
+                {p.order && <span className="text-slate-500"> · заказ №{p.order.number}</span>}
                 {p.note ? ` · ${p.note}` : ""}
               </div>
               <div className="font-medium text-green-700">+{formatRub(p.amount)}</div>

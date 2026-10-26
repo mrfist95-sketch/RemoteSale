@@ -32,18 +32,18 @@ export function ClientExpandableRow({ c }: { c: ClientRowView }) {
 
   return (
     <>
-      <tr className="border-t border-zinc-100">
+      <tr className="border-t border-slate-100">
         <td className="py-2">
           <button
             type="button"
             onClick={() => setOpen(!open)}
             className="flex items-start gap-1 text-left font-medium hover:text-brand-600"
           >
-            <span className="w-4 shrink-0 text-zinc-400">{open ? "▼" : "▶"}</span>
+            <span className="w-4 shrink-0 text-slate-400">{open ? "▼" : "▶"}</span>
             <span>
               {c.buyerName}
               {c.buyerAddress && (
-                <span className="block text-xs font-normal text-zinc-500">{c.buyerAddress}</span>
+                <span className="block text-xs font-normal text-slate-500">{c.buyerAddress}</span>
               )}
             </span>
           </button>
@@ -56,8 +56,8 @@ export function ClientExpandableRow({ c }: { c: ClientRowView }) {
       </tr>
       {open && (
         <>
-          <tr className="bg-zinc-50/60">
-            <td colSpan={6} className="px-4 py-2 text-xs text-zinc-500">
+          <tr className="bg-slate-50/60">
+            <td colSpan={6} className="px-4 py-2 text-xs text-slate-500">
               {c.orders.length === 0 ? (
                 "Заказов за период нет"
               ) : (
@@ -67,16 +67,16 @@ export function ClientExpandableRow({ c }: { c: ClientRowView }) {
           </tr>
           {c.orders.map((o) => (
             <Fragment key={o.orderId}>
-              <tr className="bg-zinc-50/60 text-sm">
+              <tr className="bg-slate-50/60 text-sm">
                 <td className="px-4 py-1.5">
                   <button
                     type="button"
                     onClick={() => setOpenOrder(openOrder === o.orderId ? null : o.orderId)}
                     className="flex items-center gap-1 text-left hover:text-brand-600"
                   >
-                    <span className="w-3 text-zinc-400">{openOrder === o.orderId ? "▼" : "▶"}</span>
+                    <span className="w-3 text-slate-400">{openOrder === o.orderId ? "▼" : "▶"}</span>
                     <span className="font-medium">№{o.number}</span>
-                    <span className="text-zinc-500">· {formatDateTime(new Date(o.createdAt))}</span>
+                    <span className="text-slate-500">· {formatDateTime(new Date(o.createdAt))}</span>
                   </button>
                 </td>
                 <td className="py-1.5" />
@@ -90,20 +90,20 @@ export function ClientExpandableRow({ c }: { c: ClientRowView }) {
               {openOrder === o.orderId && (
                 <tr className="bg-white">
                   <td colSpan={6} className="px-8 py-2">
-                    <div className="rounded border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs">
-                      <div className="mb-1 font-medium text-zinc-600">
+                    <div className="rounded border border-slate-100 bg-slate-50 px-3 py-2 text-xs">
+                      <div className="mb-1 font-medium text-slate-600">
                         История статусов заказа №{o.number}:
                       </div>
                       <ol className="space-y-1">
                         {o.statusHistory.map((h, i) => (
-                          <li key={i} className="flex flex-wrap items-center gap-x-2 text-zinc-600">
+                          <li key={i} className="flex flex-wrap items-center gap-x-2 text-slate-600">
                             <span className="font-medium">{ORDER_STATUS_LABELS[h.status] ?? h.status}</span>
                             <span>· {formatDateTime(new Date(h.changedAt))}</span>
-                            {h.changedByName && <span className="text-zinc-400">· {h.changedByName}</span>}
+                            {h.changedByName && <span className="text-slate-400">· {h.changedByName}</span>}
                           </li>
                         ))}
                         {o.statusHistory.length === 0 && (
-                          <li className="text-zinc-400">История пуста</li>
+                          <li className="text-slate-400">История пуста</li>
                         )}
                       </ol>
                     </div>

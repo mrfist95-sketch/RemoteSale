@@ -36,7 +36,7 @@ export default async function AdminPriceListPage() {
       <PageHeader title="Прайс-лист" subtitle="Загрузка и ручное редактирование" />
       <Card title="Загрузить прайс-лист (CSV / XLSX)">
         <PriceListUploader />
-        <p className="mt-2 text-xs text-zinc-400">
+        <p className="mt-2 text-xs text-slate-400">
           Колонки: article/артикул, name/наименование, unit/единица, price/цена, stock/остаток,
           category/категория, manufacturer/производитель. Существующие артикулы обновляются.
         </p>
@@ -65,11 +65,11 @@ export default async function AdminPriceListPage() {
       </Card>
 
       <Card title="История загрузок" className="mt-4">
-        <ul className="divide-y divide-zinc-100 text-sm">
+        <ul className="divide-y divide-slate-100 text-sm">
           {uploads.map((u) => (
             <li key={u.id} className="flex justify-between py-2">
               <span>{u.fileName}</span>
-              <span className="text-zinc-400">
+              <span className="text-slate-400">
                 {u._count.products} поз. · {u.uploadedBy.email}
               </span>
             </li>

@@ -89,14 +89,14 @@ export default function SellerOrderBoard({
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-2">
-        <span className="text-sm text-zinc-600">
+      <div className="mb-3 flex flex-wrap items-center gap-2 rounded border border-slate-200 bg-slate-50 px-3 py-2">
+        <span className="text-sm text-slate-600">
           Массовая смена статуса ({selected.size} выбрано):
         </span>
         <select
           value={bulkStatus}
           onChange={(e) => setBulkStatus(e.target.value)}
-          className="rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
         >
           {ORDER_STATUSES.filter((s) => s !== "NEW").map((s) => (
             <option key={s} value={s}>
@@ -111,13 +111,13 @@ export default function SellerOrderBoard({
         >
           Применить
         </button>
-        <span className="ml-auto text-sm text-zinc-500">В работе: {open} из {total}</span>
+        <span className="ml-auto text-sm text-slate-500">В работе: {open} из {total}</span>
       </div>
 
       <div className="space-y-3">
-        {orders.length === 0 && <p className="text-sm text-zinc-400">Заказов пока нет</p>}
+        {orders.length === 0 && <p className="text-sm text-slate-400">Заказов пока нет</p>}
         {orders.map((o) => (
-          <div key={o.id} className="rounded-lg border border-zinc-200 p-4">
+          <div key={o.id} className="rounded-lg border border-slate-200 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-sm">
                 <input
@@ -128,7 +128,7 @@ export default function SellerOrderBoard({
                 />
                 <span className="font-semibold">Заказ №{o.number}</span>
                 <span>· {o.buyer.name ?? o.buyer.email}</span>
-                {o.agent && <span className="text-zinc-400">· агент: {o.agent.name}</span>}
+                {o.agent && <span className="text-slate-400">· агент: {o.agent.name}</span>}
                 <span>· {formatDateTime(new Date(o.createdAt))}</span>
               </div>
               <div className="flex items-center gap-3">
@@ -138,7 +138,7 @@ export default function SellerOrderBoard({
             </div>
 
             {(o.overdue || o.buyer.address || o.buyer.phone) && (
-              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                 {o.overdue && (
                   <span className="rounded-full bg-red-100 px-2 py-0.5 font-medium text-red-700">
                     Просрочено {o.overdueDays} дн.
@@ -214,7 +214,7 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
   return (
     <div className="mt-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-zinc-500">Состав заказа:</p>
+        <p className="text-xs font-medium text-slate-500">Состав заказа:</p>
         {editable && !editing && (
           <button onClick={() => setEditing(true)} className="text-xs text-blue-600 hover:underline">
             Корректировать состав
@@ -224,7 +224,7 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
       <table className="mt-1 w-full text-sm">
         <tbody>
           {order.items.map((i) => (
-            <tr key={i.id} className="border-t border-zinc-100">
+            <tr key={i.id} className="border-t border-slate-100">
               <td className="py-1">{i.name}</td>
               {editing ? (
                 <>
@@ -234,10 +234,10 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
                       min={0}
                       value={qtys[i.id] ?? i.qty}
                       onChange={(e) => setQtys((q) => ({ ...q, [i.id]: Number(e.target.value) }))}
-                      className="w-16 rounded border border-zinc-300 px-1 py-0.5 text-right"
+                      className="w-16 rounded border border-slate-300 px-1 py-0.5 text-right"
                     />
                   </td>
-                  <td className="py-1 text-right text-zinc-400">{formatRub(i.price)}</td>
+                  <td className="py-1 text-right text-slate-400">{formatRub(i.price)}</td>
                   <td className="py-1 text-right font-medium">{formatRub((qtys[i.id] ?? i.qty) * i.price)}</td>
                 </>
               ) : (
@@ -249,7 +249,7 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
             </tr>
           ))}
           {order.items.length === 0 && (
-            <tr><td className="py-2 text-xs text-zinc-400" colSpan={3}>Позиции удалены</td></tr>
+            <tr><td className="py-2 text-xs text-slate-400" colSpan={3}>Позиции удалены</td></tr>
           )}
         </tbody>
       </table>
@@ -263,7 +263,7 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="rounded border border-zinc-300 px-1 py-0.5"
+                className="rounded border border-slate-300 px-1 py-0.5"
               >
                 <option value="">— причина —</option>
                 {reasons.map((r) => (
@@ -275,12 +275,12 @@ function OrderItemsEditor({ order, reasons }: { order: SellerOrderItem; reasons:
               value={customReason}
               onChange={(e) => setCustomReason(e.target.value)}
               placeholder={reasons.length > 0 ? "или своя причина" : "причина (например: Нет на складе)"}
-              className="w-56 rounded border border-zinc-300 px-2 py-0.5"
+              className="w-56 rounded border border-slate-300 px-2 py-0.5"
             />
             <button onClick={save} disabled={busy} className="rounded bg-brand-700 px-3 py-1 text-white disabled:opacity-50">
               {busy ? "…" : "Сохранить"}
             </button>
-            <button onClick={() => { setEditing(false); setError(null); }} className="text-zinc-500 hover:underline">отмена</button>
+            <button onClick={() => { setEditing(false); setError(null); }} className="text-slate-500 hover:underline">отмена</button>
           </div>
         </div>
       )}

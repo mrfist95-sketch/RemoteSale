@@ -26,27 +26,27 @@ export default function PeriodFilter() {
   return (
     <form onSubmit={apply} className="flex flex-wrap items-end gap-2">
       <div>
-        <label className="block text-xs text-zinc-500">С</label>
+        <label className="block text-xs text-slate-500">С</label>
         <input
           type="date"
           value={from}
           onChange={(e) => setFrom(e.target.value)}
-          className="rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
         />
       </div>
       <div>
-        <label className="block text-xs text-zinc-500">По</label>
+        <label className="block text-xs text-slate-500">По</label>
         <input
           type="date"
           value={to}
           onChange={(e) => setTo(e.target.value)}
-          className="rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
         />
       </div>
       <button type="submit" className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white">
         Применить
       </button>
-      <button type="button" onClick={reset} className="text-sm text-zinc-500 hover:underline">
+      <button type="button" onClick={reset} className="text-sm text-slate-500 hover:underline">
         Сбросить
       </button>
     </form>

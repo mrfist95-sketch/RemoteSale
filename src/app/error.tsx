@@ -9,9 +9,9 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     console.error(error);
   }, [error]);
   return (
-    <div className="mx-auto mt-16 max-w-md rounded-xl border border-zinc-200 bg-white p-6 text-center shadow-sm">
+    <div className="mx-auto mt-16 max-w-md rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
       <h2 className="text-lg font-semibold text-brand-900">Что-то пошло не так</h2>
-      <p className="mt-2 text-sm text-zinc-500">
+      <p className="mt-2 text-sm text-slate-500">
         Страницу не удалось загрузить. Попробуйте ещё раз; если ошибка повторяется — сообщите администратору
         {error.digest ? (
           <>
@@ -21,10 +21,10 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         .
       </p>
       <div className="mt-4 flex justify-center gap-2">
-        <button onClick={reset} className="rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800">
+        <button onClick={reset} className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800">
           Повторить
         </button>
-        <Link href="/" className="rounded-md border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50">
+        <Link href="/" className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
           На главную
         </Link>
       </div>

@@ -34,18 +34,25 @@ interface Cat {
   _count: { products: number };
 }
 
+interface RowState {
+  price: string;
+  stock: string;
+  categoryId: string | "null";
+  manufacturer: string;
+}
+
+const baseRow = (p: Row): RowState => ({
+  price: String(p.price),
+  stock: String(p.stock),
+  categoryId: p.categoryId ?? "null",
+  manufacturer: p.manufacturer ?? "",
+});
+
 type SortKey = "article" | "name" | "manufacturer" | "category" | "price" | "stock";
 
 export default function ProductEditor({ products, categories }: { products: Row[]; categories: Cat[] }) {
   const router = useRouter();
-  const [rows, setRows] = useState<Record<string, { price: string; stock: string; categoryId: string | "null" }>>(
-    Object.fromEntries(
-      products.map((p) => [
-        p.id,
-        { price: String(p.price), stock: String(p.stock), categoryId: p.categoryId ?? "null" },
-      ]),
-    ),
-  );
+  const [rows, setRows] = useState<Record<string, RowState>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -134,8 +141,14 @@ export default function ProductEditor({ products, categories }: { products: Row[
     });
   }
 
-  function set(id: string, field: "price" | "stock" | "categoryId", value: string) {
-    setRows((r) => ({ ...r, [id]: { ...r[id], [field]: value } }));
+  // Правки хранятся только для изменённых строк; для остальных (и для только что
+  // добавленных товаров) значения берутся из данных страницы
+  function rowOf(p: Row): RowState {
+    return rows[p.id] ?? baseRow(p);
+  }
+
+  function set(p: Row, field: keyof RowState, value: string) {
+    setRows((r) => ({ ...r, [p.id]: { ...(r[p.id] ?? baseRow(p)), [field]: value } }));
   }
 
   function headerClick(k: SortKey) {
@@ -151,14 +164,17 @@ export default function ProductEditor({ products, categories }: { products: Row[
     return sortDir === "asc" ? " ▲" : " ▼";
   }
 
-  async function save(id: string) {
+  async function save(p: Row) {
+    const id = p.id;
+    const row = rowOf(p);
     setBusy(id);
     setError(null);
     try {
       unwrap(await updateProduct(id, {
-        price: Number(rows[id].price),
-        stock: Math.max(0, Math.floor(Number(rows[id].stock) || 0)),
-        categoryId: rows[id].categoryId === "null" ? null : rows[id].categoryId,
+        price: Number(row.price),
+        stock: Math.max(0, Math.floor(Number(row.stock) || 0)),
+        categoryId: row.categoryId === "null" ? null : row.categoryId,
+        manufacturer: row.manufacturer.trim() || null,
       }));
       router.refresh();
     } catch (e) {
@@ -265,7 +281,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
   }
 
   const th = (k: SortKey) => (
-    <th className={`py-2 ${k !== "article" ? "cursor-pointer select-none hover:text-zinc-800" : ""}`} onClick={k === "article" ? undefined : () => headerClick(k)}>
+    <th className={`py-2 ${k !== "article" ? "cursor-pointer select-none hover:text-slate-800" : ""}`} onClick={k === "article" ? undefined : () => headerClick(k)}>
       {k === "article"
         ? "Артикул"
         : k === "name"
@@ -284,27 +300,27 @@ export default function ProductEditor({ products, categories }: { products: Row[
   return (
     <div className="space-y-4">
       {/* Справочник категорий */}
-      <div className="rounded border border-zinc-200 bg-zinc-50 p-3 text-sm">
+      <div className="rounded border border-slate-200 bg-slate-50 p-3 text-sm">
         <p className="mb-2 font-medium">Товарные категории (справочник)</p>
         <div className="mb-3 flex flex-wrap gap-2">
-          {categories.length === 0 && <span className="text-xs text-zinc-400">Пока нет категорий</span>}
+          {categories.length === 0 && <span className="text-xs text-slate-400">Пока нет категорий</span>}
           {categories.map((c) => (
             <span
               key={c.id}
               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ring-1 ${
                 c._count.products === 0
                   ? "bg-red-50 text-red-700 ring-red-200"
-                  : "bg-white text-zinc-700 ring-zinc-200"
+                  : "bg-white text-slate-700 ring-slate-200"
               }`}
               title={c._count.products === 0 ? "Категория без товаров — можно безопасно удалить" : undefined}
             >
               {c.name}
-              <span className="text-zinc-400">· {c._count.products === 0 ? "0 товаров" : c._count.products}</span>
+              <span className="text-slate-400">· {c._count.products === 0 ? "0 товаров" : c._count.products}</span>
               <button
                 onClick={() => doDeleteCategory(c.id)}
                 title="Удалить категорию"
                 className={`ml-0.5 ${
-                  c._count.products === 0 ? "font-bold text-red-600 hover:text-red-800" : "text-zinc-400 hover:text-red-600"
+                  c._count.products === 0 ? "font-bold text-red-600 hover:text-red-800" : "text-slate-400 hover:text-red-600"
                 }`}
               >
                 ×
@@ -314,12 +330,12 @@ export default function ProductEditor({ products, categories }: { products: Row[
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <form onSubmit={addCategory} className="flex items-end gap-2">
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Новая категория
               <input
                 value={newCat}
                 onChange={(e) => setNewCat(e.target.value)}
-                className="ml-2 w-40 rounded border border-zinc-300 px-2 py-1 text-sm"
+                className="ml-2 w-40 rounded border border-slate-300 px-2 py-1 text-sm"
                 placeholder="Например: Крепёж"
               />
             </label>
@@ -327,13 +343,13 @@ export default function ProductEditor({ products, categories }: { products: Row[
               Добавить
             </button>
           </form>
-          <div className="flex items-end gap-2 border-l border-zinc-200 pl-3">
-            <label className="text-xs text-zinc-500">
+          <div className="flex items-end gap-2 border-l border-slate-200 pl-3">
+            <label className="text-xs text-slate-500">
               Объединить
               <select
                 value={mergeFrom}
                 onChange={(e) => setMergeFrom(e.target.value)}
-                className="ml-2 rounded border border-zinc-300 px-1 py-1 text-sm"
+                className="ml-2 rounded border border-slate-300 px-1 py-1 text-sm"
               >
                 <option value="">—</option>
                 {categories.map((c) => (
@@ -343,13 +359,13 @@ export default function ProductEditor({ products, categories }: { products: Row[
                 ))}
               </select>
             </label>
-            <span className="text-xs text-zinc-400">→</span>
-            <label className="text-xs text-zinc-500">
+            <span className="text-xs text-slate-400">→</span>
+            <label className="text-xs text-slate-500">
               в
               <select
                 value={mergeTo}
                 onChange={(e) => setMergeTo(e.target.value)}
-                className="ml-2 rounded border border-zinc-300 px-1 py-1 text-sm"
+                className="ml-2 rounded border border-slate-300 px-1 py-1 text-sm"
               >
                 <option value="">—</option>
                 {categories.map((c) => (
@@ -359,7 +375,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
                 ))}
               </select>
             </label>
-            <button onClick={doMerge} className="rounded border border-zinc-300 px-3 py-1.5 text-xs">
+            <button onClick={doMerge} className="rounded border border-slate-300 px-3 py-1.5 text-xs">
               Объединить
             </button>
           </div>
@@ -368,13 +384,13 @@ export default function ProductEditor({ products, categories }: { products: Row[
       </div>
 
       {/* Панель фильтров и сортировки */}
-      <div className="flex flex-wrap items-center gap-3 rounded border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm">
-        <label className="text-xs text-zinc-500">
+      <div className="flex flex-wrap items-center gap-3 rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+        <label className="text-xs text-slate-500">
           Категория
           <select
             value={filterCat}
             onChange={(e) => setFilterCat(e.target.value)}
-            className="ml-2 rounded border border-zinc-300 px-1 py-1 text-sm"
+            className="ml-2 rounded border border-slate-300 px-1 py-1 text-sm"
           >
             <option value="">все</option>
             {categories.map((c) => (
@@ -384,12 +400,12 @@ export default function ProductEditor({ products, categories }: { products: Row[
             ))}
           </select>
         </label>
-        <label className="text-xs text-zinc-500">
+        <label className="text-xs text-slate-500">
           Производитель
           <select
             value={filterManu}
             onChange={(e) => setFilterManu(e.target.value)}
-            className="ml-2 rounded border border-zinc-300 px-1 py-1 text-sm"
+            className="ml-2 rounded border border-slate-300 px-1 py-1 text-sm"
           >
             <option value="">все</option>
             {manufacturers.map((m) => (
@@ -404,7 +420,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Поиск: название / артикул / производитель"
-          className="w-64 rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="w-64 rounded border border-slate-300 px-2 py-1 text-sm"
         />
         <label className="ml-auto flex items-center gap-1 text-xs">
           <input type="checkbox" checked={showDeleted} onChange={(e) => setShowDeleted(e.target.checked)} />
@@ -422,11 +438,11 @@ export default function ProductEditor({ products, categories }: { products: Row[
       )}
 
       {/* Массовые операции */}
-      <div className="flex flex-wrap items-center gap-2 rounded border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm">
-        <span className="text-xs text-zinc-500">
+      <div className="flex flex-wrap items-center gap-2 rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+        <span className="text-xs text-slate-500">
           Выбрано: {selected.size}
           {selected.size > 0 && (
-            <button onClick={() => setSelected(new Set())} className="ml-2 text-zinc-400 hover:underline">
+            <button onClick={() => setSelected(new Set())} className="ml-2 text-slate-400 hover:underline">
               снять
             </button>
           )}
@@ -436,7 +452,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
             <button
               onClick={() => bulk("restore")}
               disabled={selected.size === 0}
-              className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-xs disabled:opacity-50"
+              className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs disabled:opacity-50"
             >
               Восстановить
             </button>
@@ -458,7 +474,7 @@ export default function ProductEditor({ products, categories }: { products: Row[
             Пометить на удаление
           </button>
         )}
-        <span className="text-xs text-zinc-400">
+        <span className="text-xs text-slate-400">
           {showDeleted
             ? "Удалённые товары: восстановление или жёсткое удаление (с историей заказов — пропускаются)"
             : "Удалённые товары скрыты; включите «показывать удалённые» ниже таблицы"}
@@ -473,35 +489,35 @@ export default function ProductEditor({ products, categories }: { products: Row[
 
       {/* Форма добавления позиции */}
       {addOpen && (
-        <form onSubmit={addProduct} className="space-y-2 rounded border border-zinc-200 bg-zinc-50 p-3 text-sm">
-          <p className="text-xs text-zinc-500">
+        <form onSubmit={addProduct} className="space-y-2 rounded border border-slate-200 bg-slate-50 p-3 text-sm">
+          <p className="text-xs text-slate-500">
             Артикул можно не указывать — он будет выдан автоматически (АРТ-XXXXXX).
           </p>
           <div className="flex flex-wrap items-end gap-2">
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Наименование *
               <input
                 required
                 value={nName}
                 onChange={(e) => setNName(e.target.value)}
-                className="ml-1 w-52 rounded border border-zinc-300 px-2 py-1"
+                className="ml-1 w-52 rounded border border-slate-300 px-2 py-1"
               />
             </label>
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Артикул
               <input
                 value={nArticle}
                 onChange={(e) => setNArticle(e.target.value)}
                 placeholder="пусто = авто"
-                className="ml-1 w-32 rounded border border-zinc-300 px-2 py-1 font-mono text-xs"
+                className="ml-1 w-32 rounded border border-slate-300 px-2 py-1 font-mono text-xs"
               />
             </label>
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Категория
               <select
                 value={nCat}
                 onChange={(e) => setNCat(e.target.value)}
-                className="ml-1 rounded border border-zinc-300 px-1 py-1"
+                className="ml-1 rounded border border-slate-300 px-1 py-1"
               >
                 <option value="null">— без —</option>
                 {categories.map((c) => (
@@ -511,39 +527,39 @@ export default function ProductEditor({ products, categories }: { products: Row[
                 ))}
               </select>
             </label>
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Производитель
               <input
                 value={nManu}
                 onChange={(e) => setNManu(e.target.value)}
-                className="ml-1 w-36 rounded border border-zinc-300 px-2 py-1"
+                className="ml-1 w-36 rounded border border-slate-300 px-2 py-1"
               />
             </label>
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Ед.
               <input
                 value={nUnit}
                 onChange={(e) => setNUnit(e.target.value)}
-                className="ml-1 w-16 rounded border border-zinc-300 px-2 py-1"
+                className="ml-1 w-16 rounded border border-slate-300 px-2 py-1"
               />
             </label>
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Цена
               <input
                 type="number"
                 step="0.01"
                 value={nPrice}
                 onChange={(e) => setNPrice(e.target.value)}
-                className="ml-1 w-24 rounded border border-zinc-300 px-2 py-1"
+                className="ml-1 w-24 rounded border border-slate-300 px-2 py-1"
               />
             </label>
-            <label className="text-xs text-zinc-500">
+            <label className="text-xs text-slate-500">
               Остаток
               <input
                 type="number"
                 value={nStock}
                 onChange={(e) => setNStock(e.target.value)}
-                className="ml-1 w-20 rounded border border-zinc-300 px-2 py-1"
+                className="ml-1 w-20 rounded border border-slate-300 px-2 py-1"
               />
             </label>
             <button
@@ -560,16 +576,21 @@ export default function ProductEditor({ products, categories }: { products: Row[
 
       {/* Таблица товаров */}
       <div className="overflow-x-auto">
+        <datalist id="manufacturers-list">
+          {manufacturers.map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
         <table className="w-full text-sm">
-          <thead className="text-left text-zinc-500">
+          <thead className="text-left text-slate-500">
             <tr>
               <th className="py-2" />
               {th("article")}
-              <th className="py-2 cursor-pointer select-none hover:text-zinc-800" onClick={() => headerClick("name")}>
+              <th className="py-2 cursor-pointer select-none hover:text-slate-800" onClick={() => headerClick("name")}>
                 Наименование{sortIndicator("name")}
               </th>
               {th("manufacturer")}
-              <th className="py-2 cursor-pointer select-none hover:text-zinc-800" onClick={() => headerClick("category")}>
+              <th className="py-2 cursor-pointer select-none hover:text-slate-800" onClick={() => headerClick("category")}>
                 Товарная категория{sortIndicator("category")}
               </th>
               <th className="py-2">Ед.</th>
@@ -581,24 +602,34 @@ export default function ProductEditor({ products, categories }: { products: Row[
           <tbody>
             {visible.length === 0 && (
               <tr>
-                <td colSpan={8} className="py-4 text-center text-sm text-zinc-400">
+                <td colSpan={8} className="py-4 text-center text-sm text-slate-400">
                   Нет позиций по фильтру
                 </td>
               </tr>
             )}
             {visible.map((p) => (
-              <tr key={p.id} className={`border-t border-zinc-100 ${p.deleted ? "opacity-60" : ""}`}>
+              <tr key={p.id} className={`border-t border-slate-100 ${p.deleted ? "opacity-60" : ""}`}>
                 <td className="py-2">
                   <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} />
                 </td>
                 <td className="py-2 font-mono text-xs">{p.article ?? "—"}</td>
                 <td className="py-2">{p.name}</td>
-                <td className="py-2 text-zinc-600">{p.manufacturer ?? "—"}</td>
+                <td className="py-2">
+                  <input
+                    type="text"
+                    list="manufacturers-list"
+                    value={rowOf(p).manufacturer}
+                    onChange={(e) => set(p, "manufacturer", e.target.value)}
+                    placeholder="—"
+                    maxLength={200}
+                    className="w-36 rounded border border-slate-300 px-2 py-1 text-xs"
+                  />
+                </td>
                 <td className="py-2">
                   <select
-                    value={rows[p.id].categoryId}
-                    onChange={(e) => set(p.id, "categoryId", e.target.value)}
-                    className="rounded border border-zinc-300 px-1 py-1 text-xs"
+                    value={rowOf(p).categoryId}
+                    onChange={(e) => set(p, "categoryId", e.target.value)}
+                    className="rounded border border-slate-300 px-1 py-1 text-xs"
                   >
                     <option value="null">— без категории —</option>
                     {categories.map((c) => (
@@ -613,22 +644,22 @@ export default function ProductEditor({ products, categories }: { products: Row[
                   <input
                     type="number"
                     step="0.01"
-                    value={rows[p.id].price}
-                    onChange={(e) => set(p.id, "price", e.target.value)}
-                    className="w-24 rounded border border-zinc-300 px-2 py-1"
+                    value={rowOf(p).price}
+                    onChange={(e) => set(p, "price", e.target.value)}
+                    className="w-24 rounded border border-slate-300 px-2 py-1"
                   />
                 </td>
                 <td className="py-2">
                   <input
                     type="number"
-                    value={rows[p.id].stock}
-                    onChange={(e) => set(p.id, "stock", e.target.value)}
-                    className="w-20 rounded border border-zinc-300 px-2 py-1"
+                    value={rowOf(p).stock}
+                    onChange={(e) => set(p, "stock", e.target.value)}
+                    className="w-20 rounded border border-slate-300 px-2 py-1"
                   />
                 </td>
                 <td className="py-2">
                   <button
-                    onClick={() => save(p.id)}
+                    onClick={() => save(p)}
                     disabled={busy === p.id}
                     className="rounded bg-brand-700 px-2 py-1 text-xs text-white disabled:opacity-50"
                   >

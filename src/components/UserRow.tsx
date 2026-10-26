@@ -119,7 +119,7 @@ export default function UserRow({
   }
 
   return (
-    <tr className={`border-t border-zinc-100 align-top ${user.blocked ? "bg-zinc-50 opacity-70" : ""}`}>
+    <tr className={`border-t border-slate-100 align-top ${user.blocked ? "bg-slate-50 opacity-70" : ""}`}>
       <td className="py-2 pr-3">
         <input
           value={name}
@@ -129,9 +129,9 @@ export default function UserRow({
           onBlur={() => {
             if (name !== (user.name ?? "")) setTimeout(save, 0);
           }}
-          className="w-40 rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="w-40 rounded border border-slate-300 px-2 py-1 text-sm"
         />
-        <div className="text-xs text-zinc-400">{user.email}</div>
+        <div className="text-xs text-slate-400">{user.email}</div>
         {user.blocked && (
           <span className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">
             заблокирован
@@ -146,7 +146,7 @@ export default function UserRow({
             setRole(e.target.value);
             setTimeout(save, 0);
           }}
-          className="rounded border border-zinc-300 px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
         >
           {ROLES.map((r) => (
             <option key={r} value={r}>
@@ -163,7 +163,7 @@ export default function UserRow({
             setAgentId(e.target.value);
             setTimeout(save, 0);
           }}
-          className="rounded border border-zinc-300 px-2 py-1 text-sm disabled:opacity-50"
+          className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-50"
         >
           <option value="">— нет —</option>
           {agents.map((a) => (
@@ -180,19 +180,19 @@ export default function UserRow({
               placeholder="Адрес"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="rounded border border-zinc-300 px-2 py-1"
+              className="rounded border border-slate-300 px-2 py-1"
             />
             <input
               placeholder="Телефон"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="rounded border border-zinc-300 px-2 py-1"
+              className="rounded border border-slate-300 px-2 py-1"
             />
             <input
               placeholder="Комментарий"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="rounded border border-zinc-300 px-2 py-1"
+              className="rounded border border-slate-300 px-2 py-1"
             />
             <label className="flex items-center gap-1">
               Отсрочка, дн.
@@ -201,12 +201,12 @@ export default function UserRow({
                 min={0}
                 value={deferral}
                 onChange={(e) => setDeferral(e.target.value)}
-                className="w-16 rounded border border-zinc-300 px-1 py-0.5"
+                className="w-16 rounded border border-slate-300 px-1 py-0.5"
               />
             </label>
           </div>
         ) : (
-          <span className="text-xs text-zinc-300">—</span>
+          <span className="text-xs text-slate-300">—</span>
         )}
       </td>
       <td className="py-2 pr-3">
@@ -220,12 +220,12 @@ export default function UserRow({
                 setPassword(e.target.value);
                 setGenerated(null);
               }}
-              className="w-32 rounded border border-zinc-300 px-2 py-1"
+              className="w-32 rounded border border-slate-300 px-2 py-1"
             />
             <button
               type="button"
               onClick={genPassword}
-              className="whitespace-nowrap rounded border border-zinc-300 px-2 py-1 text-zinc-700 hover:bg-zinc-50"
+              className="whitespace-nowrap rounded border border-slate-300 px-2 py-1 text-slate-700 hover:bg-slate-50"
             >
               Сгенерировать
             </button>
@@ -246,7 +246,7 @@ export default function UserRow({
       </td>
       <td className="py-2 text-right">
         <div className="flex flex-col items-end gap-1">
-          <button onClick={toggleBlocked} disabled={busy} className="text-xs text-zinc-600 hover:underline disabled:opacity-50">
+          <button onClick={toggleBlocked} disabled={busy} className="text-xs text-slate-600 hover:underline disabled:opacity-50">
             {user.blocked ? "Разблокировать" : "Заблокировать"}
           </button>
           <button onClick={remove} disabled={busy} className="text-xs text-red-600 hover:underline disabled:opacity-50">

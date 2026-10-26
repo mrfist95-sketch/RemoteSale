@@ -44,7 +44,7 @@ export default function BuyerProfileForm({
         <input
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="mt-1 w-full rounded border border-zinc-300 px-2 py-1"
+          className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
         />
       </label>
       <label className="text-sm">
@@ -52,7 +52,7 @@ export default function BuyerProfileForm({
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="mt-1 w-full rounded border border-zinc-300 px-2 py-1"
+          className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
         />
       </label>
       <label className="text-sm sm:col-span-2">
@@ -60,7 +60,7 @@ export default function BuyerProfileForm({
         <input
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          className="mt-1 w-full rounded border border-zinc-300 px-2 py-1"
+          className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
         />
       </label>
       <div className="flex items-center gap-3 sm:col-span-2">

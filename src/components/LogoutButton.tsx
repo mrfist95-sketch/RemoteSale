@@ -9,7 +9,7 @@ export default function LogoutButton() {
         await signOut({ redirect: false });
         window.location.assign(window.location.origin + "/login");
       }}
-      className="text-sm text-zinc-500 hover:text-zinc-900"
+      className="rounded-md bg-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-300"
     >
       Выйти
     </button>

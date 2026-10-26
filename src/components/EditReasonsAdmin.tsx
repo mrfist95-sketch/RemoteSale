@@ -38,29 +38,29 @@ export default function EditReasonsAdmin({ reasons }: { reasons: { id: string; n
   }
 
   return (
-    <div className="mb-4 rounded border border-zinc-200 bg-zinc-50 p-3 text-sm">
+    <div className="mb-4 rounded border border-slate-200 bg-slate-50 p-3 text-sm">
       <p className="mb-2 font-medium">Причины корректировки заказов (используется продавцом)</p>
       <div className="mb-2 flex flex-wrap gap-2">
-        {reasons.length === 0 && <span className="text-xs text-zinc-400">Список пуст — продавец будет вводить причину текстом</span>}
+        {reasons.length === 0 && <span className="text-xs text-slate-400">Список пуст — продавец будет вводить причину текстом</span>}
         {reasons.map((r) => (
           <span
             key={r.id}
-            className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs ring-1 ring-zinc-200"
+            className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs ring-1 ring-slate-200"
           >
             {r.name}
-            <button onClick={() => remove(r.id, r.name)} title="Удалить причину" className="text-zinc-400 hover:text-red-600">
+            <button onClick={() => remove(r.id, r.name)} title="Удалить причину" className="text-slate-400 hover:text-red-600">
               ×
             </button>
           </span>
         ))}
       </div>
       <form onSubmit={add} className="flex items-end gap-2">
-        <label className="text-xs text-zinc-500">
+        <label className="text-xs text-slate-500">
           Новая причина
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="ml-2 w-64 rounded border border-zinc-300 px-2 py-1 text-sm"
+            className="ml-2 w-64 rounded border border-slate-300 px-2 py-1 text-sm"
             placeholder="Например: Нет на складе"
           />
         </label>
