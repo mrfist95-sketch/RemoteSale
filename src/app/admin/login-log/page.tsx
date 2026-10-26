@@ -220,7 +220,17 @@ export default async function AdminLoginLogPage({
                       <span className="text-red-700">✗ {e.reason ?? "неудача"}</span>
                     )}
                   </td>
-                  <td className="py-2 font-mono text-xs">{e.ip ?? "—"}</td>
+                  <td className="py-2">
+                    <span className="font-mono text-xs">{e.ip ?? "—"}</span>
+                    {e.forwardedFor && e.forwardedFor !== e.ip && (
+                      <span
+                        className="mt-0.5 block max-w-44 truncate font-mono text-[10px] text-zinc-400"
+                        title={`Полная цепочка X-Forwarded-For: ${e.forwardedFor}`}
+                      >
+                        {e.forwardedFor}
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2">
                     {e.browser ?? "—"}
                     {e.browserVersion ? ` ${e.browserVersion}` : ""}

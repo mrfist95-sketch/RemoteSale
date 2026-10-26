@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { parseUserAgent } from "@/lib/ua";
+import { pickClientIp, forwardedChain, headerStr } from "@/lib/ip";
 import {
   checkRateLimit,
   registerFailure,
@@ -14,20 +15,6 @@ import {
 // не выдавало, зарегистрирован ли email.
 let dummyHash: string | null = null;
 const getDummyHash = () => (dummyHash ??= bcrypt.hashSync("not-a-real-password", 10));
-
-function clientIp(headers: Record<string, unknown> | undefined): string {
-  const h = headers ?? {};
-  const real = h["x-real-ip"];
-  if (typeof real === "string" && real) return real.trim();
-  const fwd = h["x-forwarded-for"];
-  if (typeof fwd === "string" && fwd) return fwd.split(",")[0].trim();
-  return "unknown";
-}
-
-function headerStr(headers: Record<string, unknown> | undefined, name: string): string | null {
-  const v = headers?.[name];
-  return typeof v === "string" && v ? v : null;
-}
 
 /** Найти пользователя по email без учёта регистра (email храним в нижнем регистре) */
 export async function findUserByEmail(raw: string) {
@@ -64,7 +51,8 @@ async function logLoginEvent(input: {
         email: input.email.toLowerCase(),
         success: input.success,
         reason: input.reason ?? null,
-        ip: clientIp(input.headers),
+        ip: pickClientIp(input.headers),
+        forwardedFor: forwardedChain(input.headers),
         userAgent: ua,
         browser: parsed.browser,
         browserVersion: parsed.browserVersion,
@@ -108,7 +96,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
         const headers = req?.headers as Record<string, unknown> | undefined;
         const key = credentials.email.toLowerCase().trim();
-        const ipKey = `ip:${clientIp(headers)}`;
+        const ipKey = `ip:${pickClientIp(headers)}`;
 
         const logFail = async (reason: string, userId: string | null = null) => {
           await logLoginEvent({
